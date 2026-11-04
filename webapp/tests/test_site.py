@@ -30,6 +30,10 @@ class LeadTrackerSiteTests(unittest.TestCase):
         for required in ('id="product-list"', 'id="product-search"', 'href="./staff-login.html"',
                          "Choose a solution", "BEC staff login"):
             self.assertIn(required, page)
+        self.assertIn('./styles.css?v=4', page)
+        styles = (WEBAPP / "styles.css").read_text(encoding="utf-8")
+        self.assertIn(".public-nav { margin-left: auto; }", styles)
+        self.assertIn(".public-nav .top-link { display: none; }", styles)
         for private_control in ('id="lead-form"', 'id="staff-workspace"', 'id="staff-password"'):
             self.assertNotIn(private_control, page)
 

@@ -293,6 +293,8 @@ footer { max-width: 1180px; margin: 0 auto; padding: 21px 24px 30px; display: fl
   .brand img { width: 122px; }
   .top-link { font-size: 12px; }
   .public-nav, .staff-toolbar { gap: 8px; }
+  .public-nav { margin-left: auto; }
+  .public-nav .top-link { display: none; }
   .public-nav .button, .staff-toolbar .button { min-height: 38px; padding: 0 10px; font-size: 11px; }
   .account-email { display: none; }
   main { padding: 0 18px 48px; }
