@@ -36,6 +36,7 @@ class LeadTrackerSiteTests(unittest.TestCase):
     def test_staff_login_requires_configured_auth_and_staff_role(self):
         page = (WEBAPP / "staff-login.html").read_text(encoding="utf-8")
         script = (WEBAPP / "staff-login.js").read_text(encoding="utf-8")
+        self.assertIn('./config.js?v=2', page)
         self.assertIn('id="staff-login-form"', page)
         self.assertIn('type="password"', page)
         self.assertIn("signInWithPassword", script)
@@ -46,6 +47,7 @@ class LeadTrackerSiteTests(unittest.TestCase):
     def test_staff_workspace_includes_leads_campaign_preview_and_destinations(self):
         page = (WEBAPP / "staff.html").read_text(encoding="utf-8")
         script = (WEBAPP / "staff.js").read_text(encoding="utf-8")
+        self.assertIn('./config.js?v=2', page)
         for element_id in ("lead-tracker", "staff-lead-search", "staff-status-filter",
                            "staff-export-leads", "campaign-studio", "campaign-preview-list",
                            "submit-campaign", "social-account-form", "social-account-targets",

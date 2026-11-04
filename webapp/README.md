@@ -20,7 +20,8 @@ and redirect allowlist are configured. The browser-safe project URL and
 publishable key are in [`config.js`](./config.js); publishable keys are
 intended to be visible to website visitors. **Never put a service-role key,
 database password, or other secret in that file.** Row-level security is the
-data access boundary.
+data access boundary. If the project config changes, bump the `v` query on the
+config script in both staff pages to prevent stale browser caches.
 
 Staff sign-in requires an account provisioned by a BEC administrator. Assign
 `app_metadata.role = "bec_staff"` from a trusted administrator environment
