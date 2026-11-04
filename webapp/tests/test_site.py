@@ -35,11 +35,14 @@ class LeadTrackerSiteTests(unittest.TestCase):
 
     def test_staff_sign_in_opens_read_only_demo_without_credentials(self):
         page = (WEBAPP / "staff-login.html").read_text(encoding="utf-8")
+        styles = (WEBAPP / "styles.css").read_text(encoding="utf-8")
         self.assertIn('href="./staff.html?demo=1"', page)
         self.assertIn(">Sign in</a>", page)
         self.assertIn("No login details are needed", page)
         self.assertNotIn('type="password"', page)
         self.assertNotIn('type="email"', page)
+        self.assertIn(".staff-auth-card > .button { display: inline-flex;", styles)
+        self.assertIn("padding: 0 24px;", styles)
 
     def test_staff_workspace_includes_leads_campaign_preview_and_destinations(self):
         page = (WEBAPP / "staff.html").read_text(encoding="utf-8")
