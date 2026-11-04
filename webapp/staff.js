@@ -1,5 +1,6 @@
 const setupNotice = document.querySelector("#staff-setup-notice");
 const setupCopy = document.querySelector("#staff-setup-copy");
+const demoNotice = document.querySelector("#staff-demo-banner");
 const deniedNotice = document.querySelector("#staff-denied");
 const deniedCopy = document.querySelector("#staff-denied-copy");
 const workspace = document.querySelector("#staff-workspace");
@@ -42,6 +43,7 @@ const supabaseReady = Boolean(window.supabase?.createClient);
 const client = databaseConfigured && supabaseReady
   ? window.supabase.createClient(config.url, config.publishableKey)
   : null;
+const demoMode = new URLSearchParams(window.location.search).get("demo") === "1";
 
 let currentUser = null;
 let productCatalog = [];
@@ -61,8 +63,9 @@ function showAccountStatus(message, isError = false) {
 
 function setWorkspaceReady(isReady) {
   workspace.hidden = !isReady;
-  signOutButton.disabled = !isReady;
-  exportLeadsButton.disabled = !isReady;
+  signOutButton.disabled = !isReady || demoMode;
+  signOutButton.hidden = demoMode;
+  exportLeadsButton.disabled = !isReady || demoMode;
   submitCampaignButton.disabled = !isReady || socialAccounts.length === 0;
 }
 
@@ -157,7 +160,10 @@ function renderLeads() {
       statusSelect.append(option);
     }
     statusSelect.value = STAFF_STATUSES.includes(lead.status) ? lead.status : "New";
-    statusSelect.addEventListener("change", () => updateLeadStatus(lead.id, statusSelect.value, statusSelect));
+    statusSelect.disabled = demoMode;
+    if (!demoMode) {
+      statusSelect.addEventListener("change", () => updateLeadStatus(lead.id, statusSelect.value, statusSelect));
+    }
     statusCell.append(statusSelect);
     row.append(statusCell);
     leadRows.append(row);
@@ -315,7 +321,8 @@ function renderSocialAccounts() {
     removeButton.className = "button button-secondary";
     removeButton.textContent = "Remove";
     removeButton.setAttribute("aria-label", `Remove ${account.platform} destination ${account.account_name}`);
-    removeButton.addEventListener("click", () => removeSocialAccount(account));
+    removeButton.disabled = demoMode;
+    if (!demoMode) removeButton.addEventListener("click", () => removeSocialAccount(account));
     item.append(label, removeButton);
     accountList.append(item);
 
@@ -336,7 +343,7 @@ function renderSocialAccounts() {
 
 function updateSubmitAvailability() {
   const anyTargets = accountTargets.querySelector('input[type="checkbox"]:checked');
-  submitCampaignButton.disabled = !currentUser || !anyTargets;
+  submitCampaignButton.disabled = (!currentUser && !demoMode) || !anyTargets;
 }
 
 async function loadSocialAccounts() {
@@ -352,6 +359,7 @@ async function loadSocialAccounts() {
 
 async function addSocialAccount(event) {
   event.preventDefault();
+  if (demoMode) return;
   const platform = document.querySelector("#social-platform").value;
   const accountName = document.querySelector("#social-account-name").value.trim();
   const accountHandle = document.querySelector("#social-account-handle").value.trim();
@@ -375,6 +383,7 @@ async function addSocialAccount(event) {
 }
 
 async function removeSocialAccount(account) {
+  if (demoMode) return;
   if (!window.confirm(`Remove ${account.platform} destination "${account.account_name}"? Previously submitted campaigns will remain in the queue.`)) return;
   const { error } = await client.from("social_accounts").delete().eq("id", account.id);
   if (error) {
@@ -397,6 +406,18 @@ async function submitCampaign(event) {
   }
   if (targets.some((target) => !target.content || target.content.length > MAX_CAMPAIGN_COPY)) {
     showWorkspaceStatus("Check the campaign text; each account's post must contain 1–3,000 characters.", true);
+    return;
+  }
+
+  if (demoMode) {
+    const row = document.createElement("tr");
+    addCell(row, productName(productSelect.value));
+    addCell(row, campaignObjective.value);
+    addCell(row, "Demo preview");
+    addCell(row, "not saved");
+    campaignRows.prepend(row);
+    emptyCampaigns.hidden = true;
+    showWorkspaceStatus("Demo preview only — the campaign was not saved.");
     return;
   }
 
@@ -500,6 +521,72 @@ async function initializeWorkspace(user) {
   }
 }
 
+async function initializeDemoWorkspace() {
+  currentUser = null;
+  setupNotice.hidden = true;
+  deniedNotice.hidden = true;
+  demoNotice.hidden = false;
+  accountForm.querySelectorAll("input, select, button").forEach((control) => {
+    control.disabled = true;
+  });
+  accountStatus.textContent = "Social account management is disabled in this demo.";
+  setWorkspaceReady(true);
+
+  await loadProducts();
+  leads = [
+    {
+      id: "demo-lead-1",
+      customer_email: "alex@example.com",
+      name: "Alex Morgan",
+      organization: "Sample Care Center",
+      email: "alex@example.com",
+      phone: "",
+      product_id: productCatalog[0].id,
+      notes: "Sample enquiry for a facility renovation.",
+      status: "New",
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: "demo-lead-2",
+      customer_email: "jordan@example.com",
+      name: "Jordan Lee",
+      organization: "Example Senior Living",
+      email: "jordan@example.com",
+      phone: "",
+      product_id: productCatalog[1]?.id || productCatalog[0].id,
+      notes: "Sample request for product information.",
+      status: "Contacted",
+      created_at: new Date(Date.now() - 86400000).toISOString(),
+    },
+  ];
+  renderLeads();
+  socialAccounts = [
+    { id: "demo-social-1", platform: "Facebook", account_name: "BEC Integrated Solutions", account_handle: "@BECIntegrated" },
+    { id: "demo-social-2", platform: "LinkedIn", account_name: "BEC Integrated Solutions", account_handle: "BEC Integrated Solutions" },
+  ];
+  renderSocialAccounts();
+  for (const [productId, objective, status] of [
+    [productCatalog[0].id, "awareness", "pending review"],
+  ]) {
+    const row = document.createElement("tr");
+    addCell(row, productName(productId));
+    addCell(row, objective);
+    addCell(row, "Demo preview");
+    addCell(row, status);
+    campaignRows.append(row);
+  }
+  emptyCampaigns.hidden = true;
+  activityList.replaceChildren();
+  const demoActivity = document.createElement("li");
+  demoActivity.textContent = "Sample enquiry created";
+  const activityTime = document.createElement("time");
+  activityTime.textContent = "Example data · Demo preview";
+  demoActivity.append(activityTime);
+  activityList.append(demoActivity);
+  emptyActivity.hidden = true;
+  showWorkspaceStatus("Demo preview — sample data only. Changes are not saved.");
+}
+
 leadSearch.addEventListener("input", renderLeads);
 leadStatusFilter.addEventListener("change", renderLeads);
 exportLeadsButton.addEventListener("click", exportLeads);
@@ -512,7 +599,11 @@ for (const input of [productSelect, campaignObjective, campaignAudience, campaig
 }
 signOutButton.addEventListener("click", signOut);
 
-if (!databaseConfigured || !supabaseReady) {
+if (demoMode) {
+  initializeDemoWorkspace().catch((error) => {
+    showWorkspaceStatus(`Could not load demo workspace: ${error.message}`, true);
+  });
+} else if (!databaseConfigured || !supabaseReady) {
   setupNotice.hidden = false;
   setupCopy.textContent = !databaseConfigured
     ? "An administrator must configure the Supabase project URL and publishable key before the staff workspace can access customer data."

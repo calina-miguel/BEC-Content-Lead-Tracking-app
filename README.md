@@ -6,11 +6,11 @@ The public product catalog is separate from the BEC staff workspace.
 - Staff sign-in: <https://calina-miguel.github.io/BEC-Content-Lead-Tracking-app/staff-login.html>
 - Staff dashboard: <https://calina-miguel.github.io/BEC-Content-Lead-Tracking-app/staff.html>
 
-The static website includes the BEC product catalog, galleries, a staff-only
-lead tracker, and a campaign composer. Shared staff sign-in and data storage
-require an administrator-configured Supabase project and staff accounts. The
-campaign composer saves previewed drafts to a review queue; it does not connect
-to social networks or post automatically.
+The static website includes the BEC product catalog, galleries, and a staff
+workspace preview with sample leads and a campaign composer. Demo mode requires
+no credentials and never accesses or changes live customer data. Live staff
+data still requires a BEC-provisioned account. Campaign submissions save drafts
+to a review queue; they do not connect to social networks or post automatically.
 
 - [`webapp/`](./webapp/) contains the public catalog and staff workspace.
 - [`webapp/supabase/schema.sql`](./webapp/supabase/schema.sql) creates the

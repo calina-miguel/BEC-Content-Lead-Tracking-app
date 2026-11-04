@@ -33,21 +33,19 @@ class LeadTrackerSiteTests(unittest.TestCase):
         for private_control in ('id="lead-form"', 'id="staff-workspace"', 'id="staff-password"'):
             self.assertNotIn(private_control, page)
 
-    def test_staff_login_requires_configured_auth_and_staff_role(self):
+    def test_staff_sign_in_opens_read_only_demo_without_credentials(self):
         page = (WEBAPP / "staff-login.html").read_text(encoding="utf-8")
-        script = (WEBAPP / "staff-login.js").read_text(encoding="utf-8")
-        self.assertIn('./config.js?v=2', page)
-        self.assertIn('id="staff-login-form"', page)
-        self.assertIn('type="password"', page)
-        self.assertIn("signInWithPassword", script)
-        self.assertIn('data.user?.app_metadata?.role !== "bec_staff"', script)
-        self.assertIn('loginClient.auth.signOut()', script)
-        self.assertNotIn("signUp", script)
+        self.assertIn('href="./staff.html?demo=1"', page)
+        self.assertIn(">Sign in</a>", page)
+        self.assertIn("No login details are needed", page)
+        self.assertNotIn('type="password"', page)
+        self.assertNotIn('type="email"', page)
 
     def test_staff_workspace_includes_leads_campaign_preview_and_destinations(self):
         page = (WEBAPP / "staff.html").read_text(encoding="utf-8")
         script = (WEBAPP / "staff.js").read_text(encoding="utf-8")
         self.assertIn('./config.js?v=2', page)
+        self.assertIn('id="staff-demo-banner"', page)
         for element_id in ("lead-tracker", "staff-lead-search", "staff-status-filter",
                            "staff-export-leads", "campaign-studio", "campaign-preview-list",
                            "submit-campaign", "social-account-form", "social-account-targets",
@@ -59,6 +57,7 @@ class LeadTrackerSiteTests(unittest.TestCase):
         for behavior in ('from("leads")', 'from("social_accounts")', 'from("campaigns")',
                          'rpc("submit_campaign"', "composePost", "app_metadata?.role !== \"bec_staff\"",
                          "text/csv;charset=utf-8", "showSaveFilePicker",
+                         'get("demo") === "1"', "initializeDemoWorkspace", "Demo preview only",
                          "It has not been published to social platforms."):
             self.assertIn(behavior, script)
         self.assertNotIn("localStorage", script)
@@ -88,7 +87,7 @@ class LeadTrackerSiteTests(unittest.TestCase):
 
     def test_styles_and_required_site_assets_exist(self):
         for name in (
-            "index.html", "staff-login.html", "staff-login.js", "staff.html", "staff.js",
+            "index.html", "staff-login.html", "staff.html", "staff.js",
             "styles.css", "app.js", "config.js", "products.json",
         ):
             self.assertTrue((WEBAPP / name).is_file(), name)

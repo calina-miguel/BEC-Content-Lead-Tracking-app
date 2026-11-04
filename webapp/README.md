@@ -14,14 +14,17 @@ business-critical or high-volume activity.
 
 ## Database and authentication
 
-The deployed app is connected to the BEC Supabase project. Its schema has been
-applied, email/password authentication is enabled, and the production site URL
-and redirect allowlist are configured. The browser-safe project URL and
-publishable key are in [`config.js`](./config.js); publishable keys are
-intended to be visible to website visitors. **Never put a service-role key,
-database password, or other secret in that file.** Row-level security is the
-data access boundary. If the project config changes, bump the `v` query on the
-config script in both staff pages to prevent stale browser caches.
+The deployed app is connected to the BEC Supabase project, and its schema has
+been applied. The browser-safe project URL and publishable key are in
+[`config.js`](./config.js); publishable keys are intended to be visible to
+website visitors. **Never put a service-role key, database password, or other
+secret in that file.** Row-level security is the data access boundary. If the
+project config changes, bump the `v` query on the config script in the staff
+workspace page to prevent stale browser caches.
+
+The **Sign in** button currently opens a credential-free demo preview. The
+preview uses sample records only, never queries Supabase, and does not save
+changes. Live staff access continues to require a BEC-provisioned account.
 
 Staff sign-in requires an account provisioned by a BEC administrator. Assign
 `app_metadata.role = "bec_staff"` from a trusted administrator environment
@@ -57,16 +60,16 @@ selected destination posts are inserted together or not at all.
 
 ## Staff workflow
 
-1. Open **BEC staff login** from the public product catalog and sign in with a
-   provisioned staff account.
-2. Filter and search customer enquiries, update a lead's status, or export the
-   visible enquiries as CSV.
-3. Under **Campaign studio**, select one or more BEC social accounts for the
-   campaign. If none are available, use **Add a BEC account** there or open
-   **Social accounts** to add the profile name and handle.
-4. Choose a product, campaign goal, and audience; add approved message details
-   and a call to action; review the per-platform previews; and submit the
-   campaign to the BEC review queue.
+1. Open **BEC staff login** from the public product catalog and choose **Sign
+   in** to preview the workspace with sample data.
+2. Filter and search the sample enquiries. Lead updates, CSV export, and social
+   account management require authenticated live staff access and are disabled
+   in the demo.
+3. Under **Campaign studio**, select one or more sample BEC social accounts for
+   the campaign.
+4. Choose a product, campaign goal, and audience; add message details and a
+   call to action; review the per-platform previews; and simulate a campaign
+   submission. Demo changes are temporary and are not saved.
 
 Social account destinations are labels only in this version. OAuth, platform
 account verification, approvals, and automatic posting are not connected.
