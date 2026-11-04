@@ -36,6 +36,7 @@ class LeadTrackerSiteTests(unittest.TestCase):
     def test_staff_sign_in_opens_read_only_demo_without_credentials(self):
         page = (WEBAPP / "staff-login.html").read_text(encoding="utf-8")
         styles = (WEBAPP / "styles.css").read_text(encoding="utf-8")
+        self.assertIn('./styles.css?v=2', page)
         self.assertIn('href="./staff.html?demo=1"', page)
         self.assertIn(">Sign in</a>", page)
         self.assertIn("No login details are needed", page)
@@ -48,6 +49,7 @@ class LeadTrackerSiteTests(unittest.TestCase):
         page = (WEBAPP / "staff.html").read_text(encoding="utf-8")
         script = (WEBAPP / "staff.js").read_text(encoding="utf-8")
         self.assertIn('./config.js?v=2', page)
+        self.assertIn('./styles.css?v=2', page)
         self.assertIn('id="staff-demo-banner"', page)
         self.assertIn('<a class="button button-primary" href="./">Product catalog</a>', page)
         for element_id in ("lead-tracker", "staff-lead-search", "staff-status-filter",
