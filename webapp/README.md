@@ -68,15 +68,19 @@ selected destination posts are inserted together or not at all.
 3. Under **Campaign studio**, select one or more sample BEC social accounts for
    the campaign.
 4. Choose a product, campaign goal, and audience; add message details and a
-   call to action; review the per-platform previews; and simulate a campaign
-   submission. Demo changes are temporary and are not saved.
+   call to action; review the platform-specific draft, focus keywords, hashtags,
+   and SEO methods; and simulate a campaign submission. Demo changes are
+   temporary and are not saved.
 
 Social account destinations are labels only in this version. OAuth, platform
 account verification, approvals, and automatic posting are not connected.
 Submitting a campaign records drafts for the selected destinations; a staff
-member must publish through the relevant social platform. The preview uses a
-local template and product catalog information. Review all copy and product
-claims before use.
+member must publish through the relevant social platform. Drafts use local
+templates and product catalog information to naturally foreground relevant
+product/category phrases, then suggest platform-specific metadata practices.
+Hashtags and SEO guidance are visible in each preview. They do not guarantee
+search placement or engagement. Review all copy, platform rules, and product
+claims before use; add only substantiated campaign details.
 
 CSV export uses the browser's save-file dialog where supported. Choose
 `D:\dev\BEC\Lead Exports` as the destination if you want to keep exports in

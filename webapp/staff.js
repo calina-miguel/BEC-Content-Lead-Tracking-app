@@ -256,8 +256,46 @@ async function exportLeads() {
   await loadActivity();
 }
 
-function composePost(platform) {
-  const product = productsById.get(productSelect.value);
+function buildCampaignSeo(product, platform) {
+  const isNurseCall = product.category.toLowerCase().includes("nurse call");
+  const categoryKeyword = isNurseCall
+    ? `${product.category.startsWith("Wireless") ? "wireless" : "wired"} nurse call system`
+    : "IP video intercom";
+  const keywords = [...new Set([product.name, categoryKeyword, product.category])];
+  const hashtags = isNurseCall
+    ? ["#BECIntegrated", "#NurseCall", "#HealthcareTechnology"]
+    : ["#BECIntegrated", "#VideoIntercom", "#BuildingEntry"];
+  const methods = {
+    Facebook: [
+      "Lead with the product and category phrase in the opening sentence.",
+      "Use descriptive image alt text and a clear link preview.",
+      "Keep the call to action direct; use a few relevant hashtags.",
+    ],
+    Instagram: [
+      "Place the product/category phrase in the first caption line.",
+      "Add descriptive image alt text and readable text overlays.",
+      "Use a small set of specific, relevant hashtags.",
+    ],
+    LinkedIn: [
+      "Put the product/category phrase in the opening lines.",
+      "Keep the copy professional and use only verified product details.",
+      "Use a few relevant hashtags and a clear next step.",
+    ],
+    X: [
+      "Front-load the product/category phrase so it remains visible.",
+      "Keep one clear call to action and a small set of relevant hashtags.",
+      "Check the final character count before posting.",
+    ],
+    YouTube: [
+      "Use the product/category phrase near the start of the title.",
+      "Repeat it naturally in the first description sentence.",
+      "Add accurate video captions, descriptive thumbnail text, and relevant hashtags.",
+    ],
+  };
+  return { keywords, hashtags, methods: methods[platform] || methods.Facebook };
+}
+
+function composePost(platform, product, seo) {
   if (!product) return "";
   const audience = campaignAudience.value.trim() || "healthcare and senior-living teams";
   const message = campaignMessage.value.trim();
@@ -268,18 +306,27 @@ function composePost(platform) {
     consultation: "Talk with BEC about a solution that fits your facility.",
     launch: "See how BEC can help your team plan its next communication upgrade.",
   }[campaignObjective.value] || "Explore a communication solution for your team.";
-  const parts = [`${product.name}`, goalText, `For ${audience}.`];
-  if (message) parts.push(message);
-  parts.push(cta);
+  const keyword = seo.keywords[1];
+  const messageLine = message ? `\n\n${message}` : "";
+  let body;
+  if (platform === "YouTube") {
+    body = `Title: ${product.name} | ${keyword}\n\nDescription: ${product.description} For ${audience}. ${goalText}${messageLine}\n\n${cta}`;
+  } else if (platform === "LinkedIn") {
+    body = `For ${audience}: ${product.name} — ${keyword} from BEC Integrated Solutions.\n\n${goalText}${messageLine}\n\n${cta}`;
+  } else if (platform === "X") {
+    body = `${product.name} | ${keyword} for ${audience}. ${message ? `${message} ` : ""}${cta}`;
+  } else if (platform === "Instagram") {
+    body = `${keyword} for ${audience}.\n\nMeet ${product.name}. ${goalText}${messageLine}\n\n${cta}`;
+  } else {
+    body = `Looking at ${keyword} options for ${audience}? Explore ${product.name} from BEC Integrated Solutions.\n\n${goalText}${messageLine}\n\n${cta}`;
+  }
 
-  const hashtags = platform === "Instagram" || platform === "X"
-    ? "\n\n#BECIntegrated #NurseCall"
-    : platform === "LinkedIn"
-      ? "\n\nLearn more about BEC Integrated Solutions."
-      : "";
+  const hashtagLine = seo.hashtags.join(" ");
+  const post = `${body}\n\n${hashtagLine}`;
   const limit = platform === "X" ? 280 : MAX_CAMPAIGN_COPY;
-  const post = `${parts.join("\n\n")}${hashtags}`;
-  return post.length <= limit ? post : `${post.slice(0, limit - 1).trimEnd()}…`;
+  if (post.length <= limit) return post;
+  const suffix = `…\n\n${hashtagLine}`;
+  return `${body.slice(0, limit - suffix.length).trimEnd()}${suffix}`;
 }
 
 function renderCampaignPreviews() {
@@ -294,16 +341,39 @@ function renderCampaignPreviews() {
 
   previewList.replaceChildren();
   for (const platform of ["Facebook", "Instagram", "LinkedIn", "X", "YouTube"]) {
+    const seo = product ? buildCampaignSeo(product, platform) : { keywords: [], hashtags: [], methods: [] };
     const card = document.createElement("article");
     card.className = "platform-preview";
     const heading = document.createElement("h4");
     heading.textContent = platform;
     const text = document.createElement("p");
-    text.textContent = composePost(platform);
+    text.className = "preview-copy";
+    text.textContent = composePost(platform, product, seo);
     const count = document.createElement("span");
     count.className = "preview-count";
     count.textContent = `${text.textContent.length} characters`;
-    card.append(heading, text, count);
+    const seoDetails = document.createElement("div");
+    seoDetails.className = "preview-seo";
+    for (const [label, items, className] of [
+      ["Focus keywords", seo.keywords, "preview-keywords"],
+      ["Hashtags", seo.hashtags, "preview-hashtags"],
+      ["Platform SEO methods", seo.methods, "preview-methods"],
+    ]) {
+      const section = document.createElement("section");
+      section.className = "preview-seo-section";
+      const title = document.createElement("h5");
+      title.textContent = label;
+      const list = document.createElement("ul");
+      list.className = className;
+      for (const item of items) {
+        const entry = document.createElement("li");
+        entry.textContent = item;
+        list.append(entry);
+      }
+      section.append(title, list);
+      seoDetails.append(section);
+    }
+    card.append(heading, text, count, seoDetails);
     previewList.append(card);
   }
 }
@@ -396,9 +466,18 @@ async function removeSocialAccount(account) {
 
 async function submitCampaign(event) {
   event.preventDefault();
+  const product = productsById.get(productSelect.value);
+  if (!product) {
+    showWorkspaceStatus("Choose a valid product before submitting the campaign.", true);
+    return;
+  }
   const targets = [...accountTargets.querySelectorAll('input[type="checkbox"]:checked')].map((checkbox) => ({
     account_id: checkbox.value,
-    content: composePost(checkbox.dataset.platform),
+    content: composePost(
+      checkbox.dataset.platform,
+      product,
+      buildCampaignSeo(product, checkbox.dataset.platform),
+    ),
   }));
   if (!targets.length) {
     showWorkspaceStatus("Choose at least one social destination before submitting.", true);

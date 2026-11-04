@@ -49,7 +49,8 @@ class LeadTrackerSiteTests(unittest.TestCase):
         page = (WEBAPP / "staff.html").read_text(encoding="utf-8")
         script = (WEBAPP / "staff.js").read_text(encoding="utf-8")
         self.assertIn('./config.js?v=2', page)
-        self.assertIn('./styles.css?v=2', page)
+        self.assertIn('./styles.css?v=3', page)
+        self.assertIn('./staff.js?v=3', page)
         self.assertIn('id="staff-demo-banner"', page)
         self.assertIn('<a class="button button-primary" href="./">Product catalog</a>', page)
         for element_id in ("lead-tracker", "staff-lead-search", "staff-status-filter",
@@ -66,6 +67,12 @@ class LeadTrackerSiteTests(unittest.TestCase):
                          'get("demo") === "1"', "initializeDemoWorkspace", "Demo preview only",
                          "It has not been published to social platforms."):
             self.assertIn(behavior, script)
+        for seo_feature in (
+            "buildCampaignSeo", "Focus keywords", "Platform SEO methods", "Hashtags",
+            "#NurseCall", "#VideoIntercom", "character count before posting",
+            "does not guarantee search rankings",
+        ):
+            self.assertIn(seo_feature, script + page)
         self.assertNotIn("localStorage", script)
 
     def test_campaign_schema_is_staff_only_and_submits_atomically(self):

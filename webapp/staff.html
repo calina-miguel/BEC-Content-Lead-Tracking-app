@@ -7,10 +7,10 @@
     <meta name="description" content="BEC staff lead tracker and campaign workspace.">
     <title>BEC staff workspace</title>
     <link rel="icon" href="./assets/bec-logo.png">
-    <link rel="stylesheet" href="./styles.css?v=2">
+    <link rel="stylesheet" href="./styles.css?v=3">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="./config.js?v=2" defer></script>
-    <script src="./staff.js" defer></script>
+    <script src="./staff.js?v=3" defer></script>
   </head>
   <body>
     <header class="topbar staff-topbar">
@@ -98,7 +98,7 @@
             <div>
               <p class="eyebrow">PROMOTIONAL CONTENT</p>
               <h2 id="campaign-title">Campaign studio</h2>
-              <p class="staff-panel-intro">Prepare platform-specific copy, review the previews, then submit it for BEC review.</p>
+              <p class="staff-panel-intro">Prepare keyword-aware platform drafts, review hashtags and SEO guidance, then submit them for BEC review.</p>
             </div>
           </div>
           <div class="campaign-layout">
@@ -140,7 +140,7 @@
                 <button id="generate-campaign" type="button" class="button button-secondary">Refresh preview</button>
                 <button id="submit-campaign" type="submit" class="button button-primary" disabled>Submit campaign</button>
               </div>
-              <p class="privacy-note">Submission saves the campaign and selected account destinations to the BEC queue. It does not publish to social platforms automatically.</p>
+              <p class="privacy-note">Submission saves drafts to the BEC review queue; it does not publish automatically. Check product claims and platform rules before posting. SEO guidance does not guarantee search rankings.</p>
             </form>
             <div class="campaign-preview" aria-labelledby="campaign-preview-title">
               <h3 id="campaign-preview-title">Content preview</h3>

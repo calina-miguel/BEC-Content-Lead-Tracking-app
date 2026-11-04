@@ -257,8 +257,14 @@ footer { max-width: 1180px; margin: 0 auto; padding: 21px 24px 30px; display: fl
 .campaign-preview-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .platform-preview { min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: #fbfcfc; }
 .platform-preview h4 { margin: 0 0 8px; font-size: 13px; }
-.platform-preview p { min-height: 112px; margin: 0 0 10px; color: #435663; font-size: 12px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.platform-preview .preview-copy { min-height: 112px; margin: 0 0 10px; color: #435663; font-size: 12px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
 .preview-count { color: var(--muted); font-size: 10px; }
+.preview-seo { display: grid; gap: 10px; margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--line); }
+.preview-seo-section h5 { margin: 0 0 5px; font-size: 11px; }
+.preview-seo-section ul { display: flex; flex-wrap: wrap; gap: 5px; margin: 0; padding: 0; list-style: none; }
+.preview-seo-section li { color: #435663; font-size: 11px; line-height: 1.45; }
+.preview-keywords li, .preview-hashtags li { padding: 3px 7px; border-radius: 12px; background: #eaf1f5; overflow-wrap: anywhere; }
+.preview-methods { display: grid !important; gap: 4px !important; padding-left: 16px !important; list-style: disc !important; }
 .campaign-history { margin-top: 34px; }
 .campaign-history .table-scroll { margin-top: 8px; }
 .campaign-history .lead-table td { min-width: 140px; }
