@@ -1,16 +1,13 @@
-# BEC Product Content Studio
+# BEC Content & Lead Tracking app
 
-Static, dependency-free product catalog and campaign brief builder. The catalog
-is based on product names and descriptions published at
-[becintegrated.com](https://becintegrated.com/); each product links back to its
-official source page. Product setup diagrams and device images are locally
-bundled from BEC's published product pages or the supplied BEC product
-references. System images are representative; project-specific equipment
-should be confirmed with BEC.
+A static product catalog and browser-based lead tracker for demonstrating BEC
+Integrated Solutions products.
 
-## Local preview
+## Try the demo
 
-Open `index.html` from a local HTTP server (the browser fetches `products.json`):
+Open the published app at
+<https://calina-miguel.github.io/BEC-Content-Lead-Tracking-app/> or preview it
+locally with a small HTTP server:
 
 ```powershell
 python -m http.server 8000 --directory webapp
@@ -18,42 +15,25 @@ python -m http.server 8000 --directory webapp
 
 Then open `http://localhost:8000`.
 
-The brief builder does not store or transmit credentials. It copies a product
-ID and campaign brief, then opens the protected GitHub Actions workflow for
-manual dispatch.
+1. Browse or search the product catalog and inspect the representative setup
+   images.
+2. Scroll to **Keep every enquiry moving**. Three clearly labeled sample leads
+   are provided on a first visit.
+3. Add a lead with a name, organization, product, and at least one contact
+   method. Update its status, search or filter the list, or remove it.
+4. Choose **Download CSV** to export the current list. **Restore demo records**
+   replaces the saved list with the sample records.
 
-## GitHub Pages
+## Data and publishing
 
-`.github/workflows/pages.yml` publishes only this directory. The deployment
-workflow can enable Pages when it has repository Actions permissions. After the
-first successful deployment, the default project URL is
-`https://calina-miguel.github.io/BEC/`.
+Lead records are stored only in this browser on this device. They are not sent
+to a server or shared with other users. Clearing browser data removes them;
+download a CSV before switching devices or browsers. Sample people and
+organizations are fictional.
 
-## Content-generation workflow setup
+Product setup images are representative and configurations vary by project.
+Confirm specifications and package contents with BEC before making a purchasing
+decision.
 
-The manual workflow scrapes the selected official BEC product page, asks Gemini
-for a factual copy draft and image prompt, submits that prompt to a configured
-ComfyUI API server, and publishes the generated page after the
-`content-review` environment approval.
-
-Before dispatching a run, configure these repository Actions secrets:
-
-- `GEMINI_API_KEY`: Google AI Studio API key.
-- `COMFYUI_BASE_URL`: reachable ComfyUI HTTP(S) server origin (without a path).
-- `COMFYUI_CHECKPOINT`: checkpoint filename already installed on that server.
-- `COMFYUI_API_TOKEN`: optional bearer token if the ComfyUI endpoint is behind a
-  bearer-token proxy.
-
-The API-format workflow in `automation/comfyui_api_workflow.json` uses standard
-ComfyUI nodes; the configured server must have the selected checkpoint and
-support those nodes. Do not expose an unauthenticated ComfyUI server to the
-public internet.
-
-For a real approval gate, add required reviewers to the repository's
-`content-review` environment in **Settings → Environments**. Without that
-repository-side protection, GitHub does not pause the workflow for approval.
-The generated draft and image are available as a workflow artifact for review.
-
-The static page cannot dispatch Actions anonymously; no personal access token
-is embedded in the site. Select **Copy brief & open workflow**, then choose the
-product and paste the campaign brief into the protected workflow form.
+The GitHub Pages workflow publishes the `webapp/` directory. The CI workflow
+checks the product catalog and required app files on each change.
