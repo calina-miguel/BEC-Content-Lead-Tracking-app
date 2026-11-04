@@ -12,34 +12,41 @@ Supabase free-plan services have usage, storage, and availability limits, not
 unlimited storage. Review the current plan limits before using the app for
 business-critical or high-volume activity.
 
-## Set up the database and authentication
+## Database and authentication
 
-1. Create a Supabase project. Enable email/password sign-in, keep email
-   confirmation enabled, configure the site URL and redirect allowlist for the
-   deployed site and any local preview, and set appropriate signup rate limits.
+The deployed app is connected to the BEC Supabase project. Its schema has been
+applied, email/password authentication is enabled, and the production site URL
+and redirect allowlist are configured. The browser-safe project URL and
+publishable key are in [`config.js`](./config.js); publishable keys are
+intended to be visible to website visitors. **Never put a service-role key,
+database password, or other secret in that file.** Row-level security is the
+data access boundary.
+
+Staff sign-in requires an account provisioned by a BEC administrator. Assign
+`app_metadata.role = "bec_staff"` from a trusted administrator environment
+using the Supabase Auth Admin API. For example:
+
+```js
+await supabaseAdmin.auth.admin.updateUserById(userId, {
+  app_metadata: { role: "bec_staff" },
+});
+```
+
+Never expose `supabaseAdmin` or its service-role key in the browser. Customer
+signups cannot assign themselves the staff role.
+
+For a new Supabase project or a schema reset:
+
+1. Enable email/password sign-in, keep email confirmation enabled, configure
+   the site URL and redirect allowlist for the deployed site and local preview,
+   and set appropriate signup rate limits.
 2. Run [`supabase/schema.sql`](./supabase/schema.sql) in the Supabase SQL
-   Editor. The script creates customer-owned enquiries, staff-only access
-   policies, activity history, social-account destinations, campaign records,
-   and a transaction-backed campaign submission function.
-3. Set `url` and `publishableKey` in [`config.js`](./config.js) to the Supabase
-   project URL and public anon/publishable key. These values are visible to
-   website visitors. **Never place a service-role key, database password, or
-   other secret in this file.** Row-level security is the data access boundary.
-4. Provision staff accounts from a trusted administrator environment by
-   assigning `app_metadata.role = "bec_staff"` using the Supabase Auth Admin
-   API. For example:
-
-   ```js
-   await supabaseAdmin.auth.admin.updateUserById(userId, {
-     app_metadata: { role: "bec_staff" },
-   });
-   ```
-
-   Never expose `supabaseAdmin` or its service-role key in the browser.
-   Customer signups cannot assign themselves the staff role.
-5. Deploy the site. Until a valid project URL, publishable key, schema, and
-   staff account are configured, staff sign-in and cloud operations are
-   unavailable.
+   Editor. It creates customer-owned enquiries, staff-only access policies,
+   activity history, social-account destinations, campaign records, and a
+   transaction-backed campaign submission function.
+3. Set `url` and `publishableKey` in [`config.js`](./config.js) to the new
+   project's URL and public publishable key. Never use a secret key here.
+4. Provision staff accounts as described above and deploy the site.
 
 Customers can create and read only their own enquiries. BEC staff can read
 enquiries across customer accounts, update lead statuses, manage social
