@@ -4,10 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f6f7f5">
-    <meta name="description" content="Explore BEC nurse call and intercom products, manage demo leads, and export your lead list.">
+    <meta name="description" content="Explore BEC nurse call and intercom products, track enquiries in your private account, and export your lead list.">
     <title>BEC Content &amp; Lead Tracking app</title>
     <link rel="icon" href="./assets/bec-logo.png">
     <link rel="stylesheet" href="./styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="./config.js" defer></script>
     <script src="./app.js" defer></script>
   </head>
   <body>
@@ -52,34 +54,62 @@
         <div class="section-heading">
           <div>
             <p class="eyebrow">LEAD TRACKER</p>
-            <h2 id="lead-title">Keep every enquiry moving.</h2>
+            <h2 id="lead-title">Your enquiries, in one place.</h2>
           </div>
-          <div class="lead-actions">
-            <button id="export-leads" type="button" class="button button-secondary">Download CSV</button>
-            <button id="restore-demo" type="button" class="button button-secondary">Restore demo records</button>
+          <div id="account-toolbar" class="account-toolbar" hidden>
+            <span id="account-email" class="account-email"></span>
+            <button id="sign-out" type="button" class="button button-secondary">Sign out</button>
           </div>
         </div>
-        <p class="storage-note">Sample leads use fictional details. Lead data stays in this browser; download a CSV to save or share it.</p>
+        <p class="storage-note">Once connected, cloud storage keeps your enquiries and their change history with your account and shares them with authorized BEC personnel for follow-up.</p>
         <p id="lead-status" class="status" role="status" aria-live="polite"></p>
 
-        <div class="lead-layout">
+        <section id="database-setup" class="database-notice" hidden aria-labelledby="database-setup-title">
+          <h3 id="database-setup-title">Customer enquiries need cloud setup</h3>
+          <p>Connect a Supabase project and create the secure app tables before customers can submit enquiries. No lead data is stored in this browser.</p>
+          <a href="./README.md#cloud-database-setup">View setup instructions</a>
+        </section>
+
+        <form id="auth-form" class="auth-form" hidden>
+          <h3>Customer or BEC staff sign-in</h3>
+          <p>Customers can create an account to submit product enquiries. BEC personnel sign in with an account provisioned by a BEC administrator.</p>
+          <div class="field">
+            <label for="account-email-input">Email</label>
+            <input id="account-email-input" name="email" type="email" autocomplete="email" maxlength="254" required>
+          </div>
+          <div class="field">
+            <label for="account-password">Password</label>
+            <input id="account-password" name="password" type="password" autocomplete="current-password" minlength="8" maxlength="72" required>
+          </div>
+          <div class="lead-actions">
+            <button id="sign-in" type="submit" class="button button-primary">Sign in</button>
+            <button id="sign-up" type="button" class="button button-secondary">Create account</button>
+          </div>
+          <p id="auth-status" class="status" role="status" aria-live="polite"></p>
+        </form>
+
+        <div id="account-workspace" hidden>
+          <div class="lead-actions workspace-actions">
+            <button id="export-leads" type="button" class="button button-secondary" disabled>Export CSV</button>
+          </div>
+          <div class="lead-layout">
           <form id="lead-form" class="lead-form">
-            <h3>Add a lead</h3>
+            <h3>Send BEC a product enquiry</h3>
             <div class="field">
-              <label for="lead-name">Contact name</label>
+              <label for="lead-name">Your name</label>
               <input id="lead-name" name="name" maxlength="120" autocomplete="name" required>
             </div>
             <div class="field">
-              <label for="lead-organization">Organization</label>
+              <label for="lead-organization">Your organization</label>
               <input id="lead-organization" name="organization" maxlength="160" autocomplete="organization" required>
             </div>
             <div class="field">
-              <label for="lead-email">Email <span class="field-hint">or phone is required</span></label>
-              <input id="lead-email" name="email" type="email" maxlength="254" autocomplete="email">
+              <label for="lead-email">Your email <span class="field-hint">or phone is required</span></label>
+              <input id="lead-email" name="email" type="email" maxlength="254" autocomplete="off">
             </div>
             <div class="field">
-              <label for="lead-phone">Phone</label>
-              <input id="lead-phone" name="phone" type="tel" maxlength="40" autocomplete="tel">
+              <label for="lead-phone">Your phone</label>
+              <input id="lead-phone" name="phone" type="tel" maxlength="40" autocomplete="off">
             </div>
             <div class="field">
               <label for="lead-product">Product interest</label>
@@ -91,13 +121,14 @@
               <label for="lead-notes">Notes</label>
               <textarea id="lead-notes" name="notes" rows="3" maxlength="600" placeholder="Optional follow-up details"></textarea>
             </div>
-            <button id="add-lead" type="submit" class="button button-primary" disabled>Add lead</button>
+            <p class="privacy-note">Your enquiry and its activity history will be shared with authorized BEC personnel so they can respond.</p>
+            <button id="add-lead" type="submit" class="button button-primary" disabled>Send enquiry to BEC</button>
           </form>
 
           <div class="lead-list">
             <div class="lead-list-heading">
               <div>
-                <h3>Enquiries</h3>
+                <h3 id="enquiries-heading">Your enquiries</h3>
                 <p id="lead-summary" class="status" aria-live="polite"></p>
               </div>
               <div class="lead-filters">
@@ -133,6 +164,13 @@
             </div>
             <p id="empty-leads" class="empty-state" hidden>No leads match these filters. Add a lead or change your search.</p>
           </div>
+          </div>
+          <details class="activity-panel">
+            <summary>Recent account activity</summary>
+            <p class="storage-note">Enquiry submissions, BEC status changes, removals, sign-ins, sign-out requests, and CSV exports are recorded. Catalog browsing and searches are not tracked.</p>
+            <ol id="activity-list" class="activity-list"></ol>
+            <p id="empty-activity" class="empty-state" hidden>No activity has been recorded yet.</p>
+          </details>
         </div>
       </section>
     </main>
