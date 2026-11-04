@@ -1,0 +1,35 @@
+name: BEC web app checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "webapp/**"
+      - "automation/**"
+      - ".github/workflows/**"
+  pull_request:
+    paths:
+      - "webapp/**"
+      - "automation/**"
+      - ".github/workflows/**"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          sparse-checkout: |
+            webapp
+            automation
+            .github/workflows
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate catalog and workflow
+        run: python -m unittest discover -s automation/tests -v

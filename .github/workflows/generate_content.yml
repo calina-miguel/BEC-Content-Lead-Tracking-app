@@ -1,0 +1,89 @@
+name: Generate BEC product content
+
+on:
+  workflow_dispatch:
+    inputs:
+      product_id:
+        description: Product to feature
+        required: true
+        type: choice
+        options:
+          - mv200plus
+          - mv500
+          - pc-wireless
+          - tektone-nc120
+          - tektone-nc160
+          - tektone-emerge-3000
+          - aiphone-ixg
+          - aiphone-ix
+      campaign_brief:
+        description: Audience, goal, and tone copied from the Product Content Studio
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          sparse-checkout: |
+            webapp
+            automation
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate site and automation
+        run: python -m unittest discover -s automation/tests -v
+      - name: Generate copy and image
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          COMFYUI_BASE_URL: ${{ secrets.COMFYUI_BASE_URL }}
+          COMFYUI_CHECKPOINT: ${{ secrets.COMFYUI_CHECKPOINT }}
+          COMFYUI_API_TOKEN: ${{ secrets.COMFYUI_API_TOKEN }}
+          PRODUCT_ID: ${{ inputs.product_id }}
+          CAMPAIGN_BRIEF: ${{ inputs.campaign_brief }}
+        run: |
+          mkdir -p dist
+          cp -R webapp/. dist/
+          python automation/generate_content.py \
+            --product "$PRODUCT_ID" \
+            --brief "$CAMPAIGN_BRIEF" \
+            --output dist \
+            --run-id "${{ github.run_id }}"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  review:
+    needs: generate
+    runs-on: ubuntu-latest
+    environment: content-review
+    steps:
+      - name: Await content approval
+        run: echo "Review the generated artifact in this workflow run before approving publication."
+
+  publish:
+    needs: review
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - name: Publish approved content
+        id: deployment
+        uses: actions/deploy-pages@v4
