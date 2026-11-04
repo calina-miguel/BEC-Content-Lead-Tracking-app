@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f6f7f5">
+    <meta name="description" content="Secure BEC staff sign-in.">
+    <title>BEC staff sign-in</title>
+    <link rel="icon" href="./assets/bec-logo.png">
+    <link rel="stylesheet" href="./styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="./config.js" defer></script>
+    <script src="./staff-login.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="BEC Integrated Solutions home">
+        <img src="./assets/bec-logo.png" alt="BEC Integrated Solutions">
+      </a>
+      <a class="top-link" href="./">Back to product catalog</a>
+    </header>
+    <main class="staff-auth-main">
+      <section class="staff-auth-card" aria-labelledby="staff-login-title">
+        <p class="eyebrow">BEC INTEGRATED SOLUTIONS</p>
+        <h1 id="staff-login-title">Staff sign-in</h1>
+        <p>Sign in with your BEC staff account to access enquiries and campaign tools.</p>
+        <form id="staff-login-form" class="auth-form">
+          <div class="field">
+            <label for="staff-email">BEC email</label>
+            <input id="staff-email" name="email" type="email" autocomplete="username" maxlength="254" required>
+          </div>
+          <div class="field">
+            <label for="staff-password">Password</label>
+            <input id="staff-password" name="password" type="password" autocomplete="current-password" maxlength="72" required>
+          </div>
+          <button id="staff-login-button" type="submit" class="button button-primary">Sign in</button>
+          <p id="staff-login-status" class="status" role="status" aria-live="polite"></p>
+        </form>
+        <section id="staff-login-setup" class="database-notice" hidden>
+          <h2>Staff sign-in needs setup</h2>
+          <p id="staff-login-setup-copy">Configure the secure database project before staff can sign in.</p>
+          <a href="./README.md#bec-staff-dashboard">View administrator setup instructions</a>
+        </section>
+        <p class="staff-auth-help">Staff access is provisioned by a BEC administrator. Customer accounts cannot access the staff workspace.</p>
+      </section>
+    </main>
+    <footer>
+      <span>For authorized BEC personnel.</span>
+      <a href="https://becintegrated.com/">BEC Integrated Solutions <span aria-hidden="true">↗</span></a>
+    </footer>
+  </body>
+</html>

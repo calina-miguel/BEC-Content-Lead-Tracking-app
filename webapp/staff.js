@@ -1,0 +1,538 @@
+const setupNotice = document.querySelector("#staff-setup-notice");
+const setupCopy = document.querySelector("#staff-setup-copy");
+const deniedNotice = document.querySelector("#staff-denied");
+const deniedCopy = document.querySelector("#staff-denied-copy");
+const workspace = document.querySelector("#staff-workspace");
+const workspaceStatus = document.querySelector("#staff-status");
+const staffAccountLabel = document.querySelector("#staff-account");
+const signOutButton = document.querySelector("#staff-sign-out");
+const leadRows = document.querySelector("#staff-lead-rows");
+const leadSearch = document.querySelector("#staff-lead-search");
+const leadStatusFilter = document.querySelector("#staff-status-filter");
+const leadSummary = document.querySelector("#staff-lead-summary");
+const emptyLeads = document.querySelector("#staff-empty-leads");
+const exportLeadsButton = document.querySelector("#staff-export-leads");
+const productSelect = document.querySelector("#campaign-product");
+const campaignForm = document.querySelector("#campaign-form");
+const campaignObjective = document.querySelector("#campaign-objective");
+const campaignAudience = document.querySelector("#campaign-audience");
+const campaignMessage = document.querySelector("#campaign-message");
+const campaignCta = document.querySelector("#campaign-cta");
+const generateButton = document.querySelector("#generate-campaign");
+const submitCampaignButton = document.querySelector("#submit-campaign");
+const previewList = document.querySelector("#campaign-preview-list");
+const campaignImagePreview = document.querySelector("#campaign-image-preview");
+const campaignImage = document.querySelector("#campaign-image");
+const campaignImageCaption = document.querySelector("#campaign-image-caption");
+const campaignRows = document.querySelector("#campaign-rows");
+const emptyCampaigns = document.querySelector("#empty-campaigns");
+const accountForm = document.querySelector("#social-account-form");
+const accountStatus = document.querySelector("#social-account-status");
+const accountList = document.querySelector("#social-account-list");
+const accountTargets = document.querySelector("#social-account-targets");
+const noAccountsMessage = document.querySelector("#no-social-accounts");
+const activityList = document.querySelector("#staff-activity-list");
+const emptyActivity = document.querySelector("#staff-empty-activity");
+const STAFF_STATUSES = ["New", "Contacted", "Qualified", "Closed"];
+const MAX_CAMPAIGN_COPY = 3000;
+
+const config = window.BEC_SUPABASE_CONFIG;
+const databaseConfigured = Boolean(config?.url && config?.publishableKey);
+const supabaseReady = Boolean(window.supabase?.createClient);
+const client = databaseConfigured && supabaseReady
+  ? window.supabase.createClient(config.url, config.publishableKey)
+  : null;
+
+let currentUser = null;
+let productCatalog = [];
+let productsById = new Map();
+let leads = [];
+let socialAccounts = [];
+
+function showWorkspaceStatus(message, isError = false) {
+  workspaceStatus.textContent = message;
+  workspaceStatus.classList.toggle("status-error", isError);
+}
+
+function showAccountStatus(message, isError = false) {
+  accountStatus.textContent = message;
+  accountStatus.classList.toggle("status-error", isError);
+}
+
+function setWorkspaceReady(isReady) {
+  workspace.hidden = !isReady;
+  signOutButton.disabled = !isReady;
+  exportLeadsButton.disabled = !isReady;
+  submitCampaignButton.disabled = !isReady || socialAccounts.length === 0;
+}
+
+function addCell(row, value) {
+  const cell = document.createElement("td");
+  cell.textContent = value;
+  row.append(cell);
+  return cell;
+}
+
+function productName(productId) {
+  return productsById.get(productId)?.name || productId || "Unspecified product";
+}
+
+function localDate(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.valueOf()) ? "Unknown date" : date.toLocaleString();
+}
+
+async function loadProducts() {
+  const response = await fetch("./products.json");
+  if (!response.ok) throw new Error(`Could not load products (${response.status}).`);
+  const data = await response.json();
+  if (!Array.isArray(data)) throw new Error("The product catalog has an invalid format.");
+  productCatalog = data;
+  productsById = new Map(data.map((product) => [product.id, product]));
+  productSelect.replaceChildren();
+  for (const product of productCatalog) {
+    const option = document.createElement("option");
+    option.value = product.id;
+    option.textContent = product.name;
+    productSelect.append(option);
+  }
+  productSelect.disabled = data.length === 0;
+  if (!data.length) throw new Error("There are no products available for a campaign.");
+  const selectedProductId = sessionStorage.getItem("bec-selected-product");
+  if (selectedProductId && productsById.has(selectedProductId)) productSelect.value = selectedProductId;
+  renderCampaignPreviews();
+}
+
+function filteredLeads() {
+  const query = leadSearch.value.trim().toLocaleLowerCase();
+  const status = leadStatusFilter.value;
+  return leads.filter((lead) => {
+    const haystack = [
+      lead.name,
+      lead.organization,
+      lead.email,
+      lead.phone,
+      lead.customer_email,
+      productName(lead.product_id),
+      lead.notes,
+    ].join(" ").toLocaleLowerCase();
+    return (!query || haystack.includes(query)) && (!status || lead.status === status);
+  });
+}
+
+function renderLeads() {
+  leadRows.replaceChildren();
+  const matchingLeads = filteredLeads();
+  for (const lead of matchingLeads) {
+    const row = document.createElement("tr");
+    const contact = document.createElement("td");
+    const name = document.createElement("strong");
+    name.textContent = lead.name;
+    const organization = document.createElement("span");
+    organization.className = "table-subtext";
+    organization.textContent = lead.organization;
+    const email = document.createElement("span");
+    email.className = "table-subtext";
+    email.textContent = lead.email || lead.phone || "No contact details";
+    const ownerEmail = document.createElement("span");
+    ownerEmail.className = "table-subtext";
+    ownerEmail.textContent = `Customer account: ${lead.customer_email || "Not available"}`;
+    contact.append(name, organization, email, ownerEmail);
+    row.append(contact);
+
+    addCell(row, productName(lead.product_id));
+    const enquiry = document.createElement("td");
+    enquiry.textContent = lead.notes || "—";
+    row.append(enquiry);
+    addCell(row, localDate(lead.created_at));
+
+    const statusCell = document.createElement("td");
+    const statusSelect = document.createElement("select");
+    statusSelect.className = "lead-status-select";
+    statusSelect.setAttribute("aria-label", `Status for ${lead.name}`);
+    for (const value of STAFF_STATUSES) {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = value;
+      statusSelect.append(option);
+    }
+    statusSelect.value = STAFF_STATUSES.includes(lead.status) ? lead.status : "New";
+    statusSelect.addEventListener("change", () => updateLeadStatus(lead.id, statusSelect.value, statusSelect));
+    statusCell.append(statusSelect);
+    row.append(statusCell);
+    leadRows.append(row);
+  }
+  leadSummary.textContent = `${matchingLeads.length} of ${leads.length} ${leads.length === 1 ? "enquiry" : "enquiries"}`;
+  emptyLeads.hidden = matchingLeads.length !== 0;
+}
+
+async function loadLeads() {
+  const { data, error } = await client
+    .from("leads")
+    .select("id, owner_id, customer_email, name, organization, email, phone, product_id, notes, status, created_at")
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(`Could not load customer enquiries: ${error.message}`);
+  leads = data;
+  renderLeads();
+}
+
+async function updateLeadStatus(leadId, status, select) {
+  select.disabled = true;
+  showWorkspaceStatus("Updating enquiry status…");
+  const { error } = await client.from("leads").update({ status }).eq("id", leadId);
+  select.disabled = false;
+  if (error) {
+    showWorkspaceStatus(`Could not update enquiry: ${error.message}`, true);
+    await loadLeads();
+    return;
+  }
+  showWorkspaceStatus("Enquiry status updated.");
+  await Promise.all([loadLeads(), loadActivity()]);
+}
+
+function csvCell(value) {
+  let text = String(value ?? "");
+  if (/^[\s]*[=+\-@]/.test(text)) text = `'${text}`;
+  return `"${text.replaceAll('"', '""')}"`;
+}
+
+async function exportLeads() {
+  const records = filteredLeads();
+  if (!records.length) {
+    showWorkspaceStatus("There are no matching enquiries to export.", true);
+    return;
+  }
+  const columns = ["Customer", "Organization", "Contact email", "Phone", "Customer account", "Product", "Enquiry", "Status", "Created at"];
+  const lines = [
+    columns.map(csvCell).join(","),
+    ...records.map((lead) => [
+      lead.name,
+      lead.organization,
+      lead.email,
+      lead.phone,
+      lead.customer_email,
+      productName(lead.product_id),
+      lead.notes,
+      lead.status,
+      lead.created_at,
+    ].map(csvCell).join(",")),
+  ];
+  try {
+    const file = new Blob(["\ufeff", lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    if (window.showSaveFilePicker) {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: "bec-leads.csv",
+        types: [{ description: "CSV file", accept: { "text/csv": [".csv"] } }],
+      });
+      const writable = await handle.createWritable();
+      await writable.write(file);
+      await writable.close();
+    } else {
+      const url = URL.createObjectURL(file);
+      const download = document.createElement("a");
+      download.href = url;
+      download.download = "bec-leads.csv";
+      download.click();
+      URL.revokeObjectURL(url);
+    }
+  } catch (error) {
+    if (error?.name === "AbortError") return;
+    showWorkspaceStatus(`Could not save CSV: ${error.message}`, true);
+    return;
+  }
+
+  const { error } = await client.rpc("log_account_activity", { p_action: "exported" });
+  if (error) {
+    showWorkspaceStatus(`The CSV was saved, but its activity could not be recorded: ${error.message}`, true);
+    return;
+  }
+  showWorkspaceStatus("Lead list saved.");
+  await loadActivity();
+}
+
+function composePost(platform) {
+  const product = productsById.get(productSelect.value);
+  if (!product) return "";
+  const audience = campaignAudience.value.trim() || "healthcare and senior-living teams";
+  const message = campaignMessage.value.trim();
+  const cta = campaignCta.value.trim() || "Contact BEC to learn more";
+  const goalText = {
+    awareness: "Discover a communication solution designed for your team.",
+    education: "Explore how the right system can support clear, reliable communication.",
+    consultation: "Talk with BEC about a solution that fits your facility.",
+    launch: "See how BEC can help your team plan its next communication upgrade.",
+  }[campaignObjective.value] || "Explore a communication solution for your team.";
+  const parts = [`${product.name}`, goalText, `For ${audience}.`];
+  if (message) parts.push(message);
+  parts.push(cta);
+
+  const hashtags = platform === "Instagram" || platform === "X"
+    ? "\n\n#BECIntegrated #NurseCall"
+    : platform === "LinkedIn"
+      ? "\n\nLearn more about BEC Integrated Solutions."
+      : "";
+  const limit = platform === "X" ? 280 : MAX_CAMPAIGN_COPY;
+  const post = `${parts.join("\n\n")}${hashtags}`;
+  return post.length <= limit ? post : `${post.slice(0, limit - 1).trimEnd()}…`;
+}
+
+function renderCampaignPreviews() {
+  const product = productsById.get(productSelect.value);
+  const image = product?.images?.[0];
+  campaignImagePreview.hidden = !image;
+  if (image) {
+    campaignImage.src = image.src;
+    campaignImage.alt = image.alt;
+    campaignImageCaption.textContent = `${product.name} · ${image.caption}`;
+  }
+
+  previewList.replaceChildren();
+  for (const platform of ["Facebook", "Instagram", "LinkedIn", "X", "YouTube"]) {
+    const card = document.createElement("article");
+    card.className = "platform-preview";
+    const heading = document.createElement("h4");
+    heading.textContent = platform;
+    const text = document.createElement("p");
+    text.textContent = composePost(platform);
+    const count = document.createElement("span");
+    count.className = "preview-count";
+    count.textContent = `${text.textContent.length} characters`;
+    card.append(heading, text, count);
+    previewList.append(card);
+  }
+}
+
+function renderSocialAccounts() {
+  accountList.replaceChildren();
+  accountTargets.replaceChildren();
+  noAccountsMessage.hidden = socialAccounts.length > 0;
+  for (const account of socialAccounts) {
+    const item = document.createElement("li");
+    const label = document.createElement("span");
+    label.textContent = `${account.platform} · ${account.account_name} (${account.account_handle})`;
+    const removeButton = document.createElement("button");
+    removeButton.type = "button";
+    removeButton.className = "button button-secondary";
+    removeButton.textContent = "Remove";
+    removeButton.setAttribute("aria-label", `Remove ${account.platform} destination ${account.account_name}`);
+    removeButton.addEventListener("click", () => removeSocialAccount(account));
+    item.append(label, removeButton);
+    accountList.append(item);
+
+    const targetLabel = document.createElement("label");
+    targetLabel.className = "account-target";
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = account.id;
+    checkbox.dataset.platform = account.platform;
+    checkbox.addEventListener("change", updateSubmitAvailability);
+    const name = document.createElement("span");
+    name.textContent = `${account.platform} · ${account.account_name}`;
+    targetLabel.append(checkbox, name);
+    accountTargets.append(targetLabel);
+  }
+  updateSubmitAvailability();
+}
+
+function updateSubmitAvailability() {
+  const anyTargets = accountTargets.querySelector('input[type="checkbox"]:checked');
+  submitCampaignButton.disabled = !currentUser || !anyTargets;
+}
+
+async function loadSocialAccounts() {
+  const { data, error } = await client
+    .from("social_accounts")
+    .select("id, platform, account_name, account_handle, created_at")
+    .order("platform")
+    .order("account_name");
+  if (error) throw new Error(`Could not load social destinations: ${error.message}`);
+  socialAccounts = data;
+  renderSocialAccounts();
+}
+
+async function addSocialAccount(event) {
+  event.preventDefault();
+  const platform = document.querySelector("#social-platform").value;
+  const accountName = document.querySelector("#social-account-name").value.trim();
+  const accountHandle = document.querySelector("#social-account-handle").value.trim();
+  if (!accountName || !accountHandle) {
+    showAccountStatus("Enter both a profile name and handle or profile URL.", true);
+    return;
+  }
+  showAccountStatus("Adding destination…");
+  const { error } = await client.from("social_accounts").insert({
+    platform,
+    account_name: accountName,
+    account_handle: accountHandle,
+  });
+  if (error) {
+    showAccountStatus(`Could not add destination: ${error.message}`, true);
+    return;
+  }
+  accountForm.reset();
+  showAccountStatus("Social destination added.");
+  await loadSocialAccounts();
+}
+
+async function removeSocialAccount(account) {
+  if (!window.confirm(`Remove ${account.platform} destination "${account.account_name}"? Previously submitted campaigns will remain in the queue.`)) return;
+  const { error } = await client.from("social_accounts").delete().eq("id", account.id);
+  if (error) {
+    showAccountStatus(`Could not remove destination: ${error.message}`, true);
+    return;
+  }
+  showAccountStatus("Social destination removed.");
+  await loadSocialAccounts();
+}
+
+async function submitCampaign(event) {
+  event.preventDefault();
+  const targets = [...accountTargets.querySelectorAll('input[type="checkbox"]:checked')].map((checkbox) => ({
+    account_id: checkbox.value,
+    content: composePost(checkbox.dataset.platform),
+  }));
+  if (!targets.length) {
+    showWorkspaceStatus("Choose at least one social destination before submitting.", true);
+    return;
+  }
+  if (targets.some((target) => !target.content || target.content.length > MAX_CAMPAIGN_COPY)) {
+    showWorkspaceStatus("Check the campaign text; each account's post must contain 1–3,000 characters.", true);
+    return;
+  }
+
+  submitCampaignButton.disabled = true;
+  showWorkspaceStatus("Submitting campaign to the BEC review queue…");
+  const { error } = await client.rpc("submit_campaign", {
+    p_product_id: productSelect.value,
+    p_objective: campaignObjective.value,
+    p_audience: campaignAudience.value.trim(),
+    p_key_message: campaignMessage.value.trim(),
+    p_call_to_action: campaignCta.value.trim(),
+    p_targets: targets,
+  });
+  if (error) {
+    showWorkspaceStatus(`Campaign was not submitted: ${error.message}`, true);
+    updateSubmitAvailability();
+    return;
+  }
+
+  showWorkspaceStatus("Campaign submitted to the BEC review queue. It has not been published to social platforms.");
+  await Promise.all([loadCampaigns(), loadActivity()]);
+  updateSubmitAvailability();
+}
+
+async function loadCampaigns() {
+  const { data, error } = await client
+    .from("campaigns")
+    .select("id, product_id, objective, status, created_at")
+    .order("created_at", { ascending: false })
+    .limit(50);
+  if (error) throw new Error(`Could not load campaign history: ${error.message}`);
+  campaignRows.replaceChildren();
+  emptyCampaigns.hidden = data.length !== 0;
+  for (const campaign of data) {
+    const row = document.createElement("tr");
+    addCell(row, productName(campaign.product_id));
+    addCell(row, campaign.objective);
+    addCell(row, localDate(campaign.created_at));
+    addCell(row, campaign.status.replaceAll("_", " "));
+    campaignRows.append(row);
+  }
+}
+
+async function loadActivity() {
+  const { data, error } = await client
+    .from("lead_activity")
+    .select("id, customer_email, subject, action, previous_status, new_status, created_at")
+    .order("created_at", { ascending: false })
+    .limit(30);
+  if (error) throw new Error(`Could not load staff activity: ${error.message}`);
+  activityList.replaceChildren();
+  emptyActivity.hidden = data.length !== 0;
+  for (const entry of data) {
+    const item = document.createElement("li");
+    const description = entry.action === "updated"
+      ? `${entry.subject}: ${entry.previous_status || "unknown"} → ${entry.new_status || "unknown"}`
+      : entry.action === "campaign_submitted"
+        ? `Campaign submitted by ${entry.customer_email}`
+        : `${entry.subject}: ${entry.action.replaceAll("_", " ")}`;
+    item.append(document.createTextNode(description));
+    const time = document.createElement("time");
+    time.dateTime = entry.created_at;
+    time.textContent = `${entry.customer_email || "BEC staff"} · ${localDate(entry.created_at)}`;
+    item.append(time);
+    activityList.append(item);
+  }
+}
+
+async function signOut() {
+  signOutButton.disabled = true;
+  const { error } = await client.auth.signOut();
+  if (error) {
+    showWorkspaceStatus(`Could not sign out: ${error.message}`, true);
+    signOutButton.disabled = false;
+    return;
+  }
+  window.location.replace("./staff-login.html");
+}
+
+async function initializeWorkspace(user) {
+  if (user?.app_metadata?.role !== "bec_staff") {
+    setWorkspaceReady(false);
+    deniedNotice.hidden = false;
+    deniedCopy.textContent = user
+      ? "This signed-in account does not have the BEC staff role. Contact an administrator to request access."
+      : "A valid BEC staff sign-in is required to access customer enquiries.";
+    if (user) await client.auth.signOut();
+    return;
+  }
+
+  currentUser = user;
+  staffAccountLabel.textContent = user.email || "BEC staff";
+  deniedNotice.hidden = true;
+  setWorkspaceReady(true);
+  try {
+    await loadProducts();
+    await Promise.all([loadLeads(), loadSocialAccounts(), loadCampaigns(), loadActivity()]);
+    showWorkspaceStatus("Staff workspace ready.");
+  } catch (error) {
+    showWorkspaceStatus(error.message, true);
+  }
+}
+
+leadSearch.addEventListener("input", renderLeads);
+leadStatusFilter.addEventListener("change", renderLeads);
+exportLeadsButton.addEventListener("click", exportLeads);
+accountForm.addEventListener("submit", addSocialAccount);
+campaignForm.addEventListener("submit", submitCampaign);
+generateButton.addEventListener("click", renderCampaignPreviews);
+for (const input of [productSelect, campaignObjective, campaignAudience, campaignMessage, campaignCta]) {
+  input.addEventListener("input", renderCampaignPreviews);
+  input.addEventListener("change", renderCampaignPreviews);
+}
+signOutButton.addEventListener("click", signOut);
+
+if (!databaseConfigured || !supabaseReady) {
+  setupNotice.hidden = false;
+  setupCopy.textContent = !databaseConfigured
+    ? "An administrator must configure the Supabase project URL and publishable key before the staff workspace can access customer data."
+    : "The secure database service could not be loaded. Check the connection and reload this page.";
+} else {
+  client.auth.getSession().then(({ data, error }) => {
+    if (error) {
+      deniedNotice.hidden = false;
+      deniedCopy.textContent = `Could not validate the current sign-in: ${error.message}`;
+      return;
+    }
+    initializeWorkspace(data.session?.user);
+  });
+  client.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_OUT") {
+      window.location.replace("./staff-login.html");
+      return;
+    }
+    if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
+      initializeWorkspace(session?.user);
+    }
+  });
+}

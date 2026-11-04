@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f6f7f5">
+    <meta name="description" content="BEC staff lead tracker and campaign workspace.">
+    <title>BEC staff workspace</title>
+    <link rel="icon" href="./assets/bec-logo.png">
+    <link rel="stylesheet" href="./styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="./config.js" defer></script>
+    <script src="./staff.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar staff-topbar">
+      <a class="brand" href="./" aria-label="BEC Integrated Solutions home">
+        <img src="./assets/bec-logo.png" alt="BEC Integrated Solutions">
+      </a>
+      <nav class="staff-toolbar" aria-label="Staff account">
+        <span id="staff-account" class="account-email"></span>
+        <a class="button button-secondary" href="./">Product catalog</a>
+        <button id="staff-sign-out" type="button" class="button button-secondary" disabled>Sign out</button>
+      </nav>
+    </header>
+
+    <main class="staff-main">
+      <section class="staff-page-heading">
+        <p class="eyebrow">BEC INTEGRATED SOLUTIONS · STAFF WORKSPACE</p>
+        <h1>Lead tracker &amp; campaign studio</h1>
+        <p>Manage customer enquiries, prepare social content, and submit campaigns to BEC's publishing queue.</p>
+        <div class="staff-nav" aria-label="Workspace sections">
+          <a href="#lead-tracker">Lead tracker</a>
+          <a href="#campaign-studio">Campaign studio</a>
+          <a href="#social-accounts">Social accounts</a>
+          <a href="#staff-activity">Activity</a>
+        </div>
+      </section>
+
+      <section id="staff-setup-notice" class="database-notice" hidden>
+        <h2>Staff workspace needs setup</h2>
+        <p id="staff-setup-copy">Configure the database before loading customer data.</p>
+        <a href="./README.md#bec-staff-dashboard">View administrator setup instructions</a>
+      </section>
+
+      <section id="staff-denied" class="database-notice" hidden>
+        <h2>BEC staff access required</h2>
+        <p id="staff-denied-copy">This account is not authorized to view customer enquiries.</p>
+        <a href="./staff-login.html">Return to staff sign-in</a>
+      </section>
+
+      <div id="staff-workspace" hidden>
+        <p id="staff-status" class="status staff-status" role="status" aria-live="polite"></p>
+
+        <section id="lead-tracker" class="staff-panel" aria-labelledby="lead-tracker-title">
+          <div class="staff-section-heading">
+            <div>
+              <p class="eyebrow">CUSTOMER ENQUIRIES</p>
+              <h2 id="lead-tracker-title">Lead tracker</h2>
+              <p id="staff-lead-summary" class="status"></p>
+            </div>
+            <div class="lead-actions">
+              <input id="staff-lead-search" type="search" placeholder="Search customers and leads" aria-label="Search customer leads">
+              <select id="staff-status-filter" aria-label="Filter leads by status">
+                <option value="">All statuses</option>
+                <option value="New">New</option>
+                <option value="Contacted">Contacted</option>
+                <option value="Qualified">Qualified</option>
+                <option value="Closed">Closed</option>
+              </select>
+              <button id="staff-export-leads" type="button" class="button button-secondary" disabled>Export CSV</button>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table class="lead-table staff-lead-table">
+              <thead>
+                <tr>
+                  <th scope="col">Customer / contact</th>
+                  <th scope="col">Product</th>
+                  <th scope="col">Enquiry</th>
+                  <th scope="col">Added</th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody id="staff-lead-rows"></tbody>
+            </table>
+          </div>
+          <p id="staff-empty-leads" class="empty-state" hidden>No customer enquiries match the current search.</p>
+        </section>
+
+        <section id="campaign-studio" class="staff-panel" aria-labelledby="campaign-title">
+          <div class="staff-section-heading">
+            <div>
+              <p class="eyebrow">PROMOTIONAL CONTENT</p>
+              <h2 id="campaign-title">Campaign studio</h2>
+              <p class="staff-panel-intro">Prepare platform-specific copy, review the previews, then submit it for BEC review.</p>
+            </div>
+          </div>
+          <div class="campaign-layout">
+            <form id="campaign-form" class="staff-form">
+              <div class="field">
+                <label for="campaign-product">Product</label>
+                <select id="campaign-product" required disabled>
+                  <option value="">Loading products…</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="campaign-objective">Campaign goal</label>
+                <select id="campaign-objective">
+                  <option value="awareness">Build product awareness</option>
+                  <option value="education">Educate facility decision-makers</option>
+                  <option value="consultation">Invite a consultation</option>
+                  <option value="launch">Highlight a product solution</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="campaign-audience">Audience</label>
+                <input id="campaign-audience" maxlength="120" value="Healthcare and senior-living teams">
+              </div>
+              <div class="field">
+                <label for="campaign-message">Key message or offer</label>
+                <textarea id="campaign-message" rows="4" maxlength="500" placeholder="Add approved campaign details or a product benefit"></textarea>
+              </div>
+              <div class="field">
+                <label for="campaign-cta">Call to action</label>
+                <input id="campaign-cta" maxlength="100" value="Contact BEC to learn more">
+              </div>
+              <fieldset class="account-targets">
+                <legend>Publishing destinations</legend>
+                <p id="no-social-accounts" class="status">Add BEC social accounts below to choose destinations.</p>
+                <div id="social-account-targets" class="social-account-targets"></div>
+              </fieldset>
+              <div class="lead-actions">
+                <button id="generate-campaign" type="button" class="button button-secondary">Refresh preview</button>
+                <button id="submit-campaign" type="submit" class="button button-primary" disabled>Submit campaign</button>
+              </div>
+              <p class="privacy-note">Submission saves the campaign and selected account destinations to the BEC queue. It does not publish to social platforms automatically.</p>
+            </form>
+            <div class="campaign-preview" aria-labelledby="campaign-preview-title">
+              <h3 id="campaign-preview-title">Content preview</h3>
+              <figure id="campaign-image-preview" class="campaign-image-preview" hidden>
+                <img id="campaign-image" alt="">
+                <figcaption id="campaign-image-caption"></figcaption>
+              </figure>
+              <div id="campaign-preview-list" class="campaign-preview-list"></div>
+            </div>
+          </div>
+          <div class="campaign-history">
+            <h3>Submitted campaigns</h3>
+            <div class="table-scroll">
+              <table class="lead-table">
+                <thead>
+                  <tr><th scope="col">Product</th><th scope="col">Goal</th><th scope="col">Submitted</th><th scope="col">Queue status</th></tr>
+                </thead>
+                <tbody id="campaign-rows"></tbody>
+              </table>
+            </div>
+            <p id="empty-campaigns" class="empty-state" hidden>No campaigns have been submitted yet.</p>
+          </div>
+        </section>
+
+        <section id="social-accounts" class="staff-panel" aria-labelledby="social-accounts-title">
+          <div class="staff-section-heading">
+            <div>
+              <p class="eyebrow">BEC CHANNELS</p>
+              <h2 id="social-accounts-title">Social account destinations</h2>
+              <p class="staff-panel-intro">Add the BEC profile names and handles to target campaign drafts. Platform sign-in and automatic posting are not connected in this version.</p>
+            </div>
+          </div>
+          <form id="social-account-form" class="social-account-form">
+            <div class="field">
+              <label for="social-platform">Platform</label>
+              <select id="social-platform" required>
+                <option value="Facebook">Facebook</option>
+                <option value="Instagram">Instagram</option>
+                <option value="LinkedIn">LinkedIn</option>
+                <option value="X">X</option>
+                <option value="YouTube">YouTube</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="social-account-name">Profile name</label>
+              <input id="social-account-name" maxlength="80" required placeholder="BEC Integrated Solutions">
+            </div>
+            <div class="field">
+              <label for="social-account-handle">Handle or profile URL</label>
+              <input id="social-account-handle" maxlength="200" required placeholder="@BECIntegrated">
+            </div>
+            <button type="submit" class="button button-primary">Add destination</button>
+          </form>
+          <p id="social-account-status" class="status" role="status" aria-live="polite"></p>
+          <ul id="social-account-list" class="social-account-list"></ul>
+        </section>
+
+        <section id="staff-activity" class="staff-panel" aria-labelledby="staff-activity-title">
+          <div class="staff-section-heading">
+            <div>
+              <p class="eyebrow">AUDIT HISTORY</p>
+              <h2 id="staff-activity-title">Recent activity</h2>
+            </div>
+          </div>
+          <ol id="staff-activity-list" class="activity-list"></ol>
+          <p id="staff-empty-activity" class="empty-state" hidden>No recent activity is available.</p>
+        </section>
+      </div>
+    </main>
+
+    <footer>
+      <span>Internal BEC staff workspace.</span>
+      <a href="https://becintegrated.com/">BEC Integrated Solutions <span aria-hidden="true">↗</span></a>
+    </footer>
+  </body>
+</html>

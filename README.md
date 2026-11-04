@@ -1,18 +1,25 @@
 # BEC Content & Lead Tracking app
 
-Browse BEC Integrated Solutions products and submit enquiries to BEC. Once
-cloud storage is configured, authorized BEC personnel can review customer
-enquiries and their activity history in the staff workspace.
+The public product catalog is separate from the BEC staff workspace.
 
-- [`webapp/`](./webapp/) contains the product catalog and account-based lead
-  tracker.
-- [`webapp/supabase/schema.sql`](./webapp/supabase/schema.sql) creates secure
-  customer-owned records, BEC staff access policies, and a database activity log.
+- Public catalog: <https://calina-miguel.github.io/BEC-Content-Lead-Tracking-app/>
+- Staff sign-in: <https://calina-miguel.github.io/BEC-Content-Lead-Tracking-app/staff-login.html>
+- Staff dashboard: <https://calina-miguel.github.io/BEC-Content-Lead-Tracking-app/staff.html>
+
+The static website includes the BEC product catalog, galleries, a staff-only
+lead tracker, and a campaign composer. Shared staff sign-in and data storage
+require an administrator-configured Supabase project and staff accounts. The
+campaign composer saves previewed drafts to a review queue; it does not connect
+to social networks or post automatically.
+
+- [`webapp/`](./webapp/) contains the public catalog and staff workspace.
+- [`webapp/supabase/schema.sql`](./webapp/supabase/schema.sql) creates the
+  customer/staff data model, row-level security, activity log, and campaign
+  queue.
 - [`.github/workflows/pages.yml`](./.github/workflows/pages.yml) publishes the
   static app to GitHub Pages.
-- [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) checks the catalog
-  and required app files.
+- [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) checks product
+  assets and the staff-workspace structure.
 
-Try the live app at <https://calina-miguel.github.io/BEC-Content-Lead-Tracking-app/>.
-See [`webapp/README.md`](./webapp/README.md) for database configuration, staff
-account provisioning, and free-plan limits.
+See [`webapp/README.md`](./webapp/README.md) for database configuration,
+administrator-only staff provisioning, the staff workflow, and local tests.

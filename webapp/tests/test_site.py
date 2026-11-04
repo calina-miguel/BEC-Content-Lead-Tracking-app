@@ -25,118 +25,69 @@ class LeadTrackerSiteTests(unittest.TestCase):
                 self.assertTrue(image_path.is_relative_to(WEBAPP.resolve()))
                 self.assertTrue(image_path.is_file(), f"missing {image_path}")
 
-    def test_page_has_cloud_account_controls_and_activity_history(self):
+    def test_public_page_is_catalog_with_staff_login_link(self):
         page = (WEBAPP / "index.html").read_text(encoding="utf-8")
-        for element_id in (
-            "product-list",
-            "database-setup",
-            "auth-form",
-            "account-workspace",
-            "account-toolbar",
-            "sign-in",
-            "sign-up",
-            "sign-out",
-            "lead-form",
-            "lead-name",
-            "lead-organization",
-            "lead-email",
-            "lead-phone",
-            "lead-product",
-            "lead-notes",
-            "lead-search",
-            "status-filter",
-            "lead-rows",
-            "export-leads",
-            "activity-list",
-        ):
+        for required in ('id="product-list"', 'id="product-search"', 'href="./staff-login.html"',
+                         "Choose a solution", "BEC staff login"):
+            self.assertIn(required, page)
+        for private_control in ('id="lead-form"', 'id="staff-workspace"', 'id="staff-password"'):
+            self.assertNotIn(private_control, page)
+
+    def test_staff_login_requires_configured_auth_and_staff_role(self):
+        page = (WEBAPP / "staff-login.html").read_text(encoding="utf-8")
+        script = (WEBAPP / "staff-login.js").read_text(encoding="utf-8")
+        self.assertIn('id="staff-login-form"', page)
+        self.assertIn('type="password"', page)
+        self.assertIn("signInWithPassword", script)
+        self.assertIn('data.user?.app_metadata?.role !== "bec_staff"', script)
+        self.assertIn('loginClient.auth.signOut()', script)
+        self.assertNotIn("signUp", script)
+
+    def test_staff_workspace_includes_leads_campaign_preview_and_destinations(self):
+        page = (WEBAPP / "staff.html").read_text(encoding="utf-8")
+        script = (WEBAPP / "staff.js").read_text(encoding="utf-8")
+        for element_id in ("lead-tracker", "staff-lead-search", "staff-status-filter",
+                           "staff-export-leads", "campaign-studio", "campaign-preview-list",
+                           "submit-campaign", "social-account-form", "staff-activity"):
             self.assertIn(f'id="{element_id}"', page)
-        for required_copy in (
-            "Customer or BEC staff sign-in",
-            "Send BEC a product enquiry",
-            "authorized BEC personnel",
-        ):
-            self.assertIn(required_copy, page)
-        self.assertIn("authorized BEC personnel", page)
-        self.assertIn("supabase-js", page)
+        for behavior in ('from("leads")', 'from("social_accounts")', 'from("campaigns")',
+                         'rpc("submit_campaign"', "composePost", "app_metadata?.role !== \"bec_staff\"",
+                         "text/csv;charset=utf-8", "showSaveFilePicker",
+                         "It has not been published to social platforms."):
+            self.assertIn(behavior, script)
+        self.assertNotIn("localStorage", script)
 
-    def test_app_uses_authenticated_cloud_storage_and_csv_export(self):
-        app = (WEBAPP / "app.js").read_text(encoding="utf-8")
-        for required_behavior in (
-            "signInWithPassword",
-            "client.auth.signUp",
-            'from("leads")',
-            'from("lead_activity")',
-            'rpc("log_account_activity"',
-            "window.confirm",
-            "text/csv;charset=utf-8",
-            "bec-leads.csv",
-            "showSaveFilePicker",
-            'user?.app_metadata?.role === "bec_staff"',
-        ):
-            self.assertIn(required_behavior, app)
-        self.assertNotIn("localStorage", app)
-        self.assertIn("Enter an email address or phone number", app)
-        self.assertIn("Customer account", app)
+    def test_campaign_schema_is_staff_only_and_submits_atomically(self):
         schema = (WEBAPP / "supabase" / "schema.sql").read_text(encoding="utf-8")
-        self.assertIn("customer_email text not null default coalesce(auth.jwt() ->> 'email', '')", schema)
-        insert_block = app.split('client.from("leads").insert(lead)', maxsplit=1)[0].rsplit("const lead = {", maxsplit=1)[-1]
-        self.assertNotIn("customer_email:", insert_block)
-        auth_handler = app.split("client.auth.onAuthStateChange(", maxsplit=1)[1].split("});", maxsplit=1)[0]
-        self.assertIn('_event === "SIGNED_IN"', auth_handler)
-        self.assertNotIn('logAccountActivity("signed_in")', app.split("async function setCurrentUser", maxsplit=1)[1].split("function csvCell", maxsplit=1)[0])
-        sign_out_handler = app.split("async function signOut()", maxsplit=1)[1].split("productSearch.addEventListener", maxsplit=1)[0]
-        self.assertIn('logAccountActivity("sign_out_requested")', sign_out_handler)
-        self.assertLess(sign_out_handler.index('logAccountActivity("sign_out_requested")'),
-                        sign_out_handler.index("client.auth.signOut()"))
-        self.assertIn("client.auth.signOut()", sign_out_handler)
-        export_block = app.split("async function exportLeads()", maxsplit=1)[1]
-        self.assertLess(export_block.index('await logAccountActivity("exported")'),
-                        export_block.index('showLeadStatus("Lead list saved.")'))
-
-    def test_product_selection_buttons_choose_enquiry_product(self):
-        app = (WEBAPP / "app.js").read_text(encoding="utf-8")
-        self.assertIn('chooseButton.textContent = "Choose this product"', app)
-        self.assertIn('chooseButton.setAttribute("aria-pressed"', app)
-        self.assertIn("selectedProductId = product.id", app)
-        self.assertIn("leadProduct.value = product.id", app)
-        self.assertIn('document.querySelector(".lead-panel").scrollIntoView', app)
-        self.assertIn('.product-select.is-selected', (WEBAPP / "styles.css").read_text(encoding="utf-8"))
-
-    def test_database_schema_is_customer_scoped_and_allows_bec_staff(self):
-        schema = (WEBAPP / "supabase" / "schema.sql").read_text(encoding="utf-8")
-        for required_clause in (
+        for required in (
+            "public.social_accounts",
+            "public.campaigns",
+            "public.campaign_submissions",
             "enable row level security",
-            "auth.uid()",
             "public.is_bec_staff()",
-            "app_metadata' ->> 'role'",
-            "Owners can read their leads",
-            "Owners can add their leads",
-            "BEC staff can update customer leads",
-            "BEC staff can delete customer leads",
-            "Owners can read their activity",
-            "customer_email",
-            "after insert or update or delete",
-            "'signed_in', 'sign_out_requested', 'exported'",
-            "log_account_activity",
-            'drop policy if exists "Owners can update their leads"',
-            'drop policy if exists "Owners can delete their leads"',
-            "revoke insert, update on public.leads from authenticated",
-            "grant update (status) on public.leads to authenticated",
-            "and status = 'New'",
+            "BEC staff can read social accounts",
+            "BEC staff can read campaigns",
+            "BEC staff can read campaign submissions",
+            "create or replace function public.submit_campaign(",
             "security definer",
             "set search_path = ''",
-            "revoke all on public.leads, public.lead_activity from anon",
+            "raise exception 'BEC staff access is required to submit campaigns.'",
+            "raise exception 'A selected social destination no longer exists.'",
+            "'campaign_submitted'",
+            "on delete set null",
+            "revoke insert, update, delete on public.campaigns, public.campaign_submissions from authenticated",
+            "grant execute on function public.submit_campaign",
         ):
-            self.assertIn(required_clause, schema)
-        self.assertNotIn('create policy "Owners can update their leads"', schema)
-        self.assertNotIn('create policy "Owners can delete their leads"', schema)
+            self.assertIn(required, schema)
 
-    def test_static_site_assets_exist(self):
-        for name in ("index.html", "styles.css", "app.js", "config.js", "products.json"):
+    def test_styles_and_required_site_assets_exist(self):
+        for name in (
+            "index.html", "staff-login.html", "staff-login.js", "staff.html", "staff.js",
+            "styles.css", "app.js", "config.js", "products.json",
+        ):
             self.assertTrue((WEBAPP / name).is_file(), name)
         self.assertTrue((WEBAPP / "assets" / "bec-logo.png").is_file())
         self.assertTrue((WEBAPP / "supabase" / "schema.sql").is_file())
-        self.assertTrue((WEBAPP / "tests" / "test_site.py").is_file())
 
 
 if __name__ == "__main__":
