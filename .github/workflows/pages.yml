@@ -1,4 +1,4 @@
-name: Publish BEC product studio
+name: Publish BEC Content and Lead Tracking
 
 on:
   push:
