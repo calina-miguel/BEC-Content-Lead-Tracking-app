@@ -48,8 +48,12 @@ class LeadTrackerSiteTests(unittest.TestCase):
         script = (WEBAPP / "staff.js").read_text(encoding="utf-8")
         for element_id in ("lead-tracker", "staff-lead-search", "staff-status-filter",
                            "staff-export-leads", "campaign-studio", "campaign-preview-list",
-                           "submit-campaign", "social-account-form", "staff-activity"):
+                           "submit-campaign", "social-account-form", "social-account-targets",
+                           "no-social-accounts", "staff-activity"):
             self.assertIn(f'id="{element_id}"', page)
+        self.assertIn("<legend>Select social accounts</legend>", page)
+        self.assertIn('href="#social-accounts">Add a BEC account</a>', page)
+        self.assertLess(page.index('id="social-account-targets"'), page.index('id="social-accounts"'))
         for behavior in ('from("leads")', 'from("social_accounts")', 'from("campaigns")',
                          'rpc("submit_campaign"', "composePost", "app_metadata?.role !== \"bec_staff\"",
                          "text/csv;charset=utf-8", "showSaveFilePicker",

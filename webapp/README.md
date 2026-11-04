@@ -53,8 +53,9 @@ selected destination posts are inserted together or not at all.
    provisioned staff account.
 2. Filter and search customer enquiries, update a lead's status, or export the
    visible enquiries as CSV.
-3. Add the BEC social profile names and handles under **Social account
-   destinations**, then select one or more accounts in the campaign composer.
+3. Under **Campaign studio**, select one or more BEC social accounts for the
+   campaign. If none are available, use **Add a BEC account** there or open
+   **Social accounts** to add the profile name and handle.
 4. Choose a product, campaign goal, and audience; add approved message details
    and a call to action; review the per-platform previews; and submit the
    campaign to the BEC review queue.
