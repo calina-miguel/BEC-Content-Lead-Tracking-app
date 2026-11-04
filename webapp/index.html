@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f6f7f5">
+    <meta name="description" content="Explore BEC Integrated Solutions nurse call and intercom products, then prepare a content-generation request.">
+    <title>BEC | Product Content Studio</title>
+    <link rel="icon" href="./assets/bec-logo.png">
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="https://becintegrated.com/" aria-label="BEC Integrated Solutions home">
+        <img src="./assets/bec-logo.png" alt="BEC Integrated Solutions">
+      </a>
+      <a class="top-link" href="https://becintegrated.com/">Visit becintegrated.com <span aria-hidden="true">↗</span></a>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <p class="eyebrow">BEC INTEGRATED SOLUTIONS · PRODUCT CONTENT STUDIO</p>
+          <h1 id="page-title">Start with the right system.</h1>
+          <p class="hero-intro">Explore BEC's nurse call and intercom solutions, then prepare a product-specific content brief for review.</p>
+          <a class="text-link" href="https://becintegrated.com/">Learn about BEC <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="hero-note">
+          <span class="note-mark" aria-hidden="true">BEC</span>
+          <p>Product information and links below are drawn from BEC Integrated Solutions' published website.</p>
+        </div>
+      </section>
+
+      <section class="catalog" aria-labelledby="catalog-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">PRODUCT CATALOG</p>
+            <h2 id="catalog-title">Choose a solution</h2>
+          </div>
+          <label class="search-wrap">
+            <span class="visually-hidden">Search products</span>
+            <input id="search" type="search" placeholder="Search products" autocomplete="off">
+          </label>
+        </div>
+        <p class="catalog-note">Setup images are representative; exact equipment varies by facility and project scope.</p>
+        <div id="catalog-status" class="status" role="status" aria-live="polite">Loading product catalog…</div>
+        <div id="product-list" class="product-list" aria-live="polite"></div>
+      </section>
+
+      <section class="brief-panel" aria-labelledby="brief-title">
+        <div class="brief-intro">
+          <p class="eyebrow">NEXT STEP</p>
+          <h2 id="brief-title">Prepare a campaign brief</h2>
+          <p>Choose a product above, describe the audience and goal, and copy a grounded brief for the content workflow.</p>
+        </div>
+        <form id="brief-form">
+          <div class="field">
+            <label for="audience">Audience</label>
+            <input id="audience" name="audience" maxlength="160" placeholder="e.g. hospital facilities teams" required>
+          </div>
+          <div class="field">
+            <label for="goal">Campaign goal</label>
+            <textarea id="goal" name="goal" rows="3" maxlength="600" placeholder="What should this content help the audience understand?" required></textarea>
+          </div>
+          <div class="field">
+            <label for="tone">Tone</label>
+            <select id="tone" name="tone">
+              <option>Clear and informative</option>
+              <option>Warm and reassuring</option>
+              <option>Concise and practical</option>
+            </select>
+          </div>
+          <div class="brief-actions">
+            <button id="copy-brief" type="button" class="button button-primary" disabled>Copy brief &amp; open workflow</button>
+            <button id="download-brief" type="button" class="button button-secondary" disabled>Download brief</button>
+          </div>
+          <p id="brief-status" class="status" role="status" aria-live="polite"></p>
+          <p class="workflow-hint">The workflow is protected by GitHub. Nothing here stores or embeds a GitHub token; you'll review the request and start it from the Actions page.</p>
+        </form>
+      </section>
+    </main>
+
+    <footer>
+      <span>Product details may change; verify specifications with BEC.</span>
+      <a href="https://becintegrated.com/">BEC Integrated Solutions <span aria-hidden="true">↗</span></a>
+    </footer>
+  </body>
+</html>

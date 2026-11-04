@@ -1,0 +1,179 @@
+[
+  {
+    "id": "mv200plus",
+    "name": "MV200plus Wireless Nurse Call",
+    "category": "Wireless nurse call",
+    "description": "BEC's wireless nurse call platform for healthcare and senior-care facilities.",
+    "source_url": "https://becintegrated.com/wireless-mv200-plus-desk-console-delivered-pre-programmed",
+    "images": [
+      {
+        "src": "./assets/product-images/wireless-system-overview.webp",
+        "alt": "BEC wireless nurse call system overview diagram showing system components",
+        "caption": "Wireless system overview; package configurations vary"
+      },
+      {
+        "src": "./assets/product-images/mv200-desk-mounted.webp",
+        "alt": "MV200 Plus desk-mounted nurse call console",
+        "caption": "MV200 Plus desk console"
+      },
+      {
+        "src": "./assets/product-images/mv200-wall-mounted.webp",
+        "alt": "MV200 Plus wall-mounted nurse call console",
+        "caption": "MV200 Plus wall console"
+      }
+    ]
+  },
+  {
+    "id": "mv500",
+    "name": "MV500 Wireless Nurse Call",
+    "category": "Wireless nurse call",
+    "description": "A wireless nurse call system offered by BEC Integrated Solutions.",
+    "source_url": "https://becintegrated.com/wireless-mv400-desk-console-delivered-pre-programmed",
+    "images": [
+      {
+        "src": "./assets/product-images/wireless-system-overview.webp",
+        "alt": "BEC wireless nurse call system overview diagram showing system components",
+        "caption": "Wireless system overview; package configurations vary"
+      },
+      {
+        "src": "./assets/product-images/mv500-desk-console.webp",
+        "alt": "MV500 wireless nurse call desk console",
+        "caption": "MV500 desk console"
+      },
+      {
+        "src": "./assets/product-images/mv500-wall-mounted.webp",
+        "alt": "MV500 wireless nurse call wall-mounted console",
+        "caption": "MV500 wall console"
+      }
+    ]
+  },
+  {
+    "id": "pc-wireless",
+    "name": "PC-based Wireless Call System",
+    "category": "Wireless nurse call",
+    "description": "A PC-based option in BEC's wireless nurse call system lineup.",
+    "source_url": "https://becintegrated.com/wireless-pc-based-nurse-call-patient-wrist-pendant-pc-server-kit",
+    "images": [
+      {
+        "src": "./assets/product-images/pc-wireless-full-kit.webp",
+        "alt": "BEC PC-based wireless nurse call kit with server, display, and call devices",
+        "caption": "PC-based nurse call kit"
+      },
+      {
+        "src": "./assets/product-images/wireless-system-overview.webp",
+        "alt": "BEC wireless nurse call system overview diagram showing system components",
+        "caption": "Wireless system overview; package configurations vary"
+      }
+    ]
+  },
+  {
+    "id": "tektone-nc120",
+    "name": "Tek-CARE NC120",
+    "category": "Wired nurse call",
+    "description": "TekTone tone-visual nurse call for healthcare and senior-living facilities.",
+    "source_url": "https://becintegrated.com/nurse-call-system/tektone-wired/tek-care-120",
+    "images": [
+      {
+        "src": "./assets/product-images/tektone-integration-layout.webp",
+        "alt": "BEC Tek-CARE system integration diagram with a Tek-CARE 120 system branch",
+        "caption": "Tek-CARE 120 system layout"
+      },
+      {
+        "src": "./assets/product-images/tektone-nc120-components.webp",
+        "alt": "TekTone NC120 room call station and handset assembly",
+        "caption": "NC120 room call components"
+      },
+      {
+        "src": "./assets/product-images/tektone-room-stations.webp",
+        "alt": "TekTone nurse call room stations with different call buttons",
+        "caption": "Room stations"
+      }
+    ]
+  },
+  {
+    "id": "tektone-nc160",
+    "name": "Tek-CARE NC160",
+    "category": "Wired nurse call",
+    "description": "TekTone two-way audio nurse call with a touchscreen master station.",
+    "source_url": "https://becintegrated.com/nc160",
+    "images": [
+      {
+        "src": "./assets/product-images/tektone-160-system.webp",
+        "alt": "TekTone NC160 nurse call system package with central unit, master station, room stations, and indicators",
+        "caption": "NC160 system components"
+      },
+      {
+        "src": "./assets/product-images/tektone-nc160-central.webp",
+        "alt": "TekTone Tek-CARE NC160 central equipment module",
+        "caption": "NC160 central equipment module"
+      },
+      {
+        "src": "./assets/product-images/tektone-nc404ts.webp",
+        "alt": "TekTone touchscreen nurse call master station",
+        "caption": "Touchscreen master station"
+      }
+    ]
+  },
+  {
+    "id": "tektone-emerge-3000",
+    "name": "Tek-CARE EMERGE 3000",
+    "category": "Wired nurse call",
+    "description": "A TekTone nurse call system offered by BEC Integrated Solutions.",
+    "source_url": "https://becintegrated.com/nurse-call-system/tektone-wired",
+    "images": [
+      {
+        "src": "./assets/product-images/tektone-integration-layout.webp",
+        "alt": "BEC Tek-CARE system integration diagram showing the Tek-CARE 3000 system branch",
+        "caption": "Tek-CARE 3000 system layout"
+      }
+    ]
+  },
+  {
+    "id": "aiphone-ixg",
+    "name": "Aiphone IXG IP Video Intercom",
+    "category": "Intercom and building entry",
+    "description": "IP video intercom for apartment entry and multi-tenant communication.",
+    "source_url": "https://becintegrated.com/other/video-doorbell-intercom/aiphone-solutions/aiphone-ip-video-intercom",
+    "images": [
+      {
+        "src": "./assets/product-images/aiphone-ixg-system.webp",
+        "alt": "Aiphone IXG intercom system set with entry station, indoor monitor, and mobile app",
+        "caption": "IXG system components"
+      },
+      {
+        "src": "./assets/product-images/aiphone-entrance-station.webp",
+        "alt": "Aiphone video intercom entrance station",
+        "caption": "Entrance station"
+      },
+      {
+        "src": "./assets/product-images/aiphone-tenant-monitor.webp",
+        "alt": "Aiphone IXG indoor tenant monitor",
+        "caption": "Indoor monitor"
+      }
+    ]
+  },
+  {
+    "id": "aiphone-ix",
+    "name": "Aiphone IX IP Video Intercom",
+    "category": "Intercom and building entry",
+    "description": "An IP-based intercom option for facilities and security-conscious businesses.",
+    "source_url": "https://becintegrated.com/other/video-doorbell-intercom/aiphone-solutions/aiphone-ix-peer-to-peer-ip-video",
+    "images": [
+      {
+        "src": "./assets/product-images/aiphone-ix-system.webp",
+        "alt": "Aiphone IX intercom system with several emergency and video stations and an indoor monitor",
+        "caption": "IX system components"
+      },
+      {
+        "src": "./assets/product-images/aiphone-entrance-station.webp",
+        "alt": "Aiphone IP video intercom entrance station",
+        "caption": "Entrance station"
+      },
+      {
+        "src": "./assets/product-images/aiphone-tenant-monitor.webp",
+        "alt": "Aiphone indoor video intercom monitor",
+        "caption": "Indoor monitor"
+      }
+    ]
+  }
+]
