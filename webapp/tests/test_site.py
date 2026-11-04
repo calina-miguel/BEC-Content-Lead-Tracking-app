@@ -46,6 +46,7 @@ class LeadTrackerSiteTests(unittest.TestCase):
         script = (WEBAPP / "staff.js").read_text(encoding="utf-8")
         self.assertIn('./config.js?v=2', page)
         self.assertIn('id="staff-demo-banner"', page)
+        self.assertIn('<a class="button button-primary" href="./">Product catalog</a>', page)
         for element_id in ("lead-tracker", "staff-lead-search", "staff-status-filter",
                            "staff-export-leads", "campaign-studio", "campaign-preview-list",
                            "submit-campaign", "social-account-form", "social-account-targets",
